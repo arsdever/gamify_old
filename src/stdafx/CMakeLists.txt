@@ -1,4 +1,4 @@
-find_package(Qt6 CONFIG REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt5 CONFIG REQUIRED COMPONENTS Core Gui Widgets)
 
 add_library(stdafx SHARED stdafx.cpp stdafx)
 add_library(stdafx_qt SHARED stdafx_qt.cpp stdafx stdafx_qt)
