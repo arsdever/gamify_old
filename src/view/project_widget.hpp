@@ -1,12 +1,14 @@
 #pragma once
 
-namespace g::view {
+namespace g::view
+{
 
-class ProjectWidget : public QTreeWidget {
-  Q_OBJECT
+class ProjectWidget : public QTreeWidget
+{
+    Q_OBJECT
 
 public:
-  ProjectWidget(QWidget *parent = nullptr);
+    ProjectWidget(QWidget* parent = nullptr);
 };
 
 } // namespace g::view
