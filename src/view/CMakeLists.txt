@@ -1,3 +1,7 @@
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
 find_package(${QT_LIB_NAME} REQUIRED COMPONENTS Widgets)
 
 set(HEADERS main_window.hpp project_widget.hpp)

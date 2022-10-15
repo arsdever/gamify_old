@@ -1,3 +1,7 @@
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
 find_package(${QT_LIB_NAME} CONFIG REQUIRED COMPONENTS Core Gui Widgets)
 
 add_executable(gamify main.cpp)
