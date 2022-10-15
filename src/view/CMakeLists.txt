@@ -1,7 +1,7 @@
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
-set(HEADERS main_window.hpp)
-set(SOURCES main_window.cpp)
+set(HEADERS main_window.hpp project_widget.hpp)
+set(SOURCES main_window.cpp project_widget.cpp)
 
 add_library(g_view STATIC ${SOURCES} ${HEADERS})
 add_library(g::view ALIAS g_view)

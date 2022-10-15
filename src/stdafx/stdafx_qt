@@ -1,5 +1,7 @@
 #pragma once
 
 #include <qapplication>
+#include <qdockwidget>
 #include <qmainwindow>
+#include <qtreewidget>
 #include <qwidget>
