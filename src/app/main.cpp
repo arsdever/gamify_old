@@ -8,6 +8,7 @@ int main(int argc, char** argv)
 
     g::view::MainWindow window;
     window.show();
+    window.resize(800, 600);
 
     return app.exec();
 }
