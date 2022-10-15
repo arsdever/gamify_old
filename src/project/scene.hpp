@@ -3,14 +3,13 @@
 namespace g::project
 {
 
-class project
+class scene
 {
 public:
-    project(std::string_view name);
+    scene(std::string_view name);
 
 private:
     std::string _name;
-    scene_ptr _active_scene;
 };
 
 } // namespace g::project

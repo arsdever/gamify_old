@@ -1,5 +1,5 @@
-set(HEADERS project.hpp)
-set(SOURCES project.cpp)
+set(HEADERS project.hpp scene.hpp)
+set(SOURCES project.cpp scene.cpp)
 
 add_library(g_project STATIC ${SOURCES} ${HEADERS})
 add_library(g::project ALIAS g_project)
