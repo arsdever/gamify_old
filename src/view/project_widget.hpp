@@ -1,5 +1,7 @@
 #pragma once
 
+#include <project/prototypes.hpp>
+
 namespace g::view
 {
 
@@ -9,6 +11,11 @@ class ProjectWidget : public QTreeWidget
 
 public:
     ProjectWidget(QWidget* parent = nullptr);
+
+    void newProject();
+
+private:
+    project::project_ptr _project;
 };
 
 } // namespace g::view

@@ -5,6 +5,8 @@
 	],
 	"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
 	"files.associations": {
-		"stdafx_qt": "cpp"
+		"stdafx_qt": "cpp",
+		"stdafx": "cpp",
+		"format": "cpp"
 	}
 }

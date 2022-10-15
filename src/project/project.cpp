@@ -9,7 +9,7 @@ namespace g::project
 
 project::project(std::string_view name)
     : _name(name)
-    , _active_scene(std::make_shared<scene>("Untitled"))
+    , _active_scene(nullptr)
 {
 }
 

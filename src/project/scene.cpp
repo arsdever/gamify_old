@@ -10,4 +10,6 @@ scene::scene(std::string_view name)
 {
 }
 
+std::string scene::name() const { return _name; }
+
 } // namespace g::project

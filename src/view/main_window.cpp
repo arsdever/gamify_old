@@ -16,6 +16,10 @@ MainWindow::MainWindow(QWidget* parent)
     dock->setWidget(_projectWidget);
     addDockWidget(Qt::LeftDockWidgetArea, dock);
     setCentralWidget(_view);
+
+    setMenuBar(new QMenuBar);
+    QMenu* projectMenu = menuBar()->addMenu("Project");
+    projectMenu->addActions(_projectWidget->actions());
 }
 
 } // namespace g::view

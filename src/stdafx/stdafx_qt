@@ -1,7 +1,11 @@
 #pragma once
 
+#include <qaction>
 #include <qapplication>
 #include <qdockwidget>
 #include <qmainwindow>
+#include <qmenu>
+#include <qmenubar>
+#include <qstringview>
 #include <qtreewidget>
 #include <qwidget>
