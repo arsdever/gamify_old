@@ -1,4 +1,8 @@
 {
+	"cmake.configureArgs": [
+		// "-DCMAKE_TOOLCHAIN_FILE=${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake",
+		"-DQT_VERSION=6"
+	],
 	"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
 	"files.associations": {
 		"stdafx_qt": "cpp"

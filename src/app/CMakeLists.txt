@@ -1,4 +1,4 @@
-find_package(Qt5 CONFIG REQUIRED COMPONENTS Core Gui Widgets)
+find_package(${QT_LIB_NAME} CONFIG REQUIRED COMPONENTS Core Gui Widgets)
 
 add_executable(gamify main.cpp)
 

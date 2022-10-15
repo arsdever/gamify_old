@@ -1,4 +1,4 @@
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(${QT_LIB_NAME} REQUIRED COMPONENTS Widgets)
 
 set(HEADERS main_window.hpp project_widget.hpp)
 set(SOURCES main_window.cpp project_widget.cpp)
