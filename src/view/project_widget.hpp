@@ -13,6 +13,7 @@ public:
     ProjectWidget(QWidget* parent = nullptr);
 
     void newProject();
+    void newScene();
 
 private:
     project::project_ptr _project;

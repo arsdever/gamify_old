@@ -13,6 +13,12 @@ project::project(std::string_view name)
 {
 }
 
+void project::add_scene(scene_ptr scene)
+{
+    _scenes.push_back(scene);
+    signal_scene_added(scene);
+}
+
 void project::set_name(std::string_view name)
 {
     _name = name;
