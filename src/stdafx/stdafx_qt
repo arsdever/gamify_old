@@ -1,11 +1,13 @@
 #pragma once
 
+#include <qabstracttablemodel>
 #include <qaction>
 #include <qapplication>
 #include <qdockwidget>
 #include <qmainwindow>
 #include <qmenu>
 #include <qmenubar>
+#include <qmodelindex>
 #include <qstringview>
 #include <qtreewidget>
 #include <qwidget>

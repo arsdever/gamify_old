@@ -2,24 +2,24 @@
 
 #include "view/main_window.hpp"
 
-#include "view/project_widget.hpp"
+#include "view/scene_view.hpp"
 
 namespace g::view
 {
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow { parent }
-    , _projectWidget { new ProjectWidget }
+    , _sceneWidget { new SceneView { nullptr } }
     , _view { new QWidget }
 {
-    auto dock = new QDockWidget("Project", this);
-    dock->setWidget(_projectWidget);
+    auto dock = new QDockWidget("Scene explorer", this);
+    dock->setWidget(_sceneWidget);
     addDockWidget(Qt::LeftDockWidgetArea, dock);
     setCentralWidget(_view);
 
     setMenuBar(new QMenuBar);
-    QMenu* projectMenu = menuBar()->addMenu("Project");
-    projectMenu->addActions(_projectWidget->actions());
+    QMenu* sceneMenu = menuBar()->addMenu("Scene");
+    sceneMenu->addActions(_sceneWidget->actions());
 }
 
 } // namespace g::view

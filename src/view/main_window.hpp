@@ -11,7 +11,7 @@ public:
     MainWindow(QWidget* parent = nullptr);
 
 private:
-    QWidget* _projectWidget;
+    QWidget* _sceneWidget;
     QWidget* _view;
 };
 
