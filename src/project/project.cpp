@@ -31,4 +31,6 @@ void project::set_active_scene(scene_ptr scene)
     signal_active_scene_changed(scene);
 }
 
+std::list<scene_ptr> const& project::scenes() const { return _scenes; }
+
 } // namespace g::project
