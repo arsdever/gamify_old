@@ -1,5 +1,6 @@
 #pragma once
 
+#include <project/prototypes.hpp>
 namespace g::view
 {
 
@@ -11,6 +12,9 @@ public:
     MainWindow(QWidget* parent = nullptr);
 
 private:
+    project::project_ptr _project;
+    project::scene_ptr _scene;
+
     QWidget* _sceneWidget;
     QWidget* _view;
 };

@@ -21,9 +21,10 @@ public:
 
 #pragma region signals
 public:
-    boost::signals2::signal<void(scene_ptr)> signal_scene_added;
-    boost::signals2::signal<void(std::string_view)> signal_name_changed;
-    boost::signals2::signal<void(scene_ptr)> signal_active_scene_changed;
+    boost::signals2::signal<void(scene_ptr)> on_scene_added;
+    boost::signals2::signal<void(std::string_view)> on_name_changed;
+    boost::signals2::signal<void(scene_ptr)> on_active_scene_changed;
+#pragma endregion
 
 private:
     std::string _name;

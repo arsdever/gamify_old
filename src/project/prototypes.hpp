@@ -13,4 +13,9 @@ using scene_ptr = std::shared_ptr<scene>;
 using scene_wptr = std::weak_ptr<scene>;
 using scene_uptr = std::unique_ptr<scene>;
 
+class object;
+using object_ptr = std::shared_ptr<object>;
+using object_wptr = std::weak_ptr<object>;
+using object_uptr = std::unique_ptr<object>;
+
 } // namespace g::project

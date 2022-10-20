@@ -1,7 +1,7 @@
 find_package(Boost REQUIRED)
 
-set(HEADERS project.hpp scene.hpp prototypes.hpp)
-set(SOURCES project.cpp scene.cpp)
+set(HEADERS project.hpp object.hpp scene.hpp prototypes.hpp)
+set(SOURCES project.cpp object.cpp scene.cpp)
 
 add_library(g_project STATIC ${SOURCES} ${HEADERS})
 add_library(g::project ALIAS g_project)

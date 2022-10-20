@@ -10,7 +10,7 @@ class SceneView : public QTreeView
     Q_OBJECT
 
 public:
-    SceneView(project::scene_ptr project, QWidget* parent = nullptr);
+    SceneView(project::scene_ptr scene, QWidget* parent = nullptr);
 
 private:
     project::scene_ptr _scene;

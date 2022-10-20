@@ -10,7 +10,7 @@ class SceneModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
-    SceneModel(project::scene_ptr project, QObject* parent = nullptr);
+    SceneModel(project::scene_ptr scene, QObject* parent = nullptr);
     ~SceneModel() override;
 
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
