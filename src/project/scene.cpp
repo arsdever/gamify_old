@@ -22,6 +22,12 @@ object_ptr scene::create_object(std::string_view name, object_ptr parent)
     return obj;
 }
 
+void scene::remove_object(object_ptr obj)
+{
+    _objects.erase(std::find(_objects.begin(), _objects.end(), obj));
+    on_object_removed(obj);
+}
+
 std::list<object_ptr> const& scene::objects() const { return _objects; }
 
 } // namespace g::project

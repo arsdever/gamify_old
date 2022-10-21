@@ -12,6 +12,8 @@ class SceneView : public QTreeView
 public:
     SceneView(project::scene_ptr scene, QWidget* parent = nullptr);
 
+    void onContextMenu(const QPoint& pos);
+
 private:
     project::scene_ptr _scene;
 };

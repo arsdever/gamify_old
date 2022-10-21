@@ -11,8 +11,14 @@ SceneModel::SceneModel(project::scene_ptr scene, QObject* parent)
     : QAbstractItemModel(parent)
     , _scene(std::move(scene))
 {
-    _scene->on_object_added.connect([ this ](project::object_ptr)
-                                    { layoutChanged(); });
+    _scene->on_object_added.connect(
+        [ this ](project::object_ptr obj)
+        {
+        layoutChanged();
+        obj->on_children_list_changed.connect([ this ]() { layoutChanged(); });
+    });
+    _scene->on_object_removed.connect([ this ](project::object_ptr)
+                                      { layoutChanged(); });
 }
 
 SceneModel::~SceneModel() = default;

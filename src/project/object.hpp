@@ -7,7 +7,7 @@
 namespace g::project
 {
 
-class object
+class object : public std::enable_shared_from_this<object>
 {
 public:
     object(std::string_view name, object_ptr parent = nullptr);
@@ -27,14 +27,15 @@ public:
     }
 
     void make_child_of(object_ptr parent);
+    void remove_child(object_ptr child);
 
     std::list<object_ptr> const& children() const;
-	object_ptr parent() const;
+    object_ptr parent() const;
 
 #pragma region signals
 public:
-    boost::signals2::signal<void(object_ptr)> signal_parent_changed;
-    boost::signals2::signal<void()> signal_children_list_changed;
+    boost::signals2::signal<void(object_ptr)> on_parent_changed;
+    boost::signals2::signal<void()> on_children_list_changed;
 #pragma endregion
 
 private:
