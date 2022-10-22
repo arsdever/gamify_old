@@ -13,14 +13,7 @@ SceneModel::SceneModel(project::scene_ptr scene, QObject* parent)
     : QAbstractItemModel(parent)
     , _scene(std::move(scene))
 {
-    _scene->on_object_added.connect(
-        [ this ](project::object_ptr obj)
-        {
-        layoutChanged();
-        obj->on_children_list_changed.connect([ this ]() { layoutChanged(); });
-    });
-    _scene->on_object_removed.connect([ this ](project::object_ptr)
-                                      { layoutChanged(); });
+    _scene->on_children_list_changed.connect([ this ]() { layoutChanged(); });
 }
 
 SceneModel::~SceneModel() = default;
@@ -54,21 +47,20 @@ QVariant SceneModel::data(const QModelIndex& index, int role) const
 QModelIndex
 SceneModel::index(int row, int column, const QModelIndex& parent) const
 {
+    if (!row && !column && !parent.isValid())
+    {
+        _indexMap.emplace(_scene.get(), createIndex(row, column, _scene.get()));
+        return _indexMap[ _scene.get() ];
+    }
+
     if (row < 0 || column < 0 || row >= rowCount(parent) ||
         column >= columnCount(parent))
         return {};
 
     project::object_ptr obj = nullptr;
     std::list<project::object_ptr>::const_iterator it;
-    if (!parent.isValid())
-    {
-        it = _scene->objects().begin();
-    }
-    else
-    {
-        auto parent_obj = objectAtIndex(parent);
-        it = parent_obj->children().begin();
-    }
+    project::object_ptr parent_obj = objectAtIndex(parent);
+    it = parent_obj->children().begin();
 
     std::advance(it, row);
     _indexMap.emplace(it->get(), createIndex(row, column, it->get()));
@@ -89,10 +81,10 @@ QModelIndex SceneModel::parent(const QModelIndex& index) const
 
 int SceneModel::rowCount(const QModelIndex& parent) const
 {
-    auto parentObject = objectAtIndex(parent);
-    if (!parentObject)
-        return _scene->objects().size();
+    if (!parent.isValid())
+        return 1;
 
+    auto parentObject = objectAtIndex(parent);
     return parentObject->children().size();
 }
 
@@ -104,7 +96,7 @@ project::object_ptr SceneModel::objectAtIndex(const QModelIndex& index) const
             ->get_ptr();
     }
 
-    return nullptr;
+    return _scene;
 }
 
 } // namespace g::view
