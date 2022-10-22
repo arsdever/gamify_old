@@ -17,11 +17,14 @@ public:
     object_ptr create_object(std::string_view name,
                              object_ptr parent = nullptr);
 
+    void remove_object(object_ptr object);
+
     std::list<object_ptr> const& objects() const;
 
 #pragma region signals
 public:
     boost::signals2::signal<void(object_ptr)> on_object_added;
+    boost::signals2::signal<void(object_ptr)> on_object_removed;
 #pragma endregion
 
 private:
