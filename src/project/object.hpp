@@ -38,6 +38,9 @@ public:
 
     object_ptr parent() const;
 
+    object_cptr get_ptr() const;
+    object_ptr get_ptr();
+
 #pragma region signals
 public:
     boost::signals2::signal<void(object_ptr)> on_parent_changed;

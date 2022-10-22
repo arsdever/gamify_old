@@ -50,4 +50,8 @@ void object::move(object_ptr parent)
     parent->add_child(shared_from_this());
 }
 
+object_cptr object::get_ptr() const { return shared_from_this(); }
+
+object_ptr object::get_ptr() { return shared_from_this(); }
+
 } // namespace g::project
