@@ -7,10 +7,13 @@
 namespace g::project
 {
 
-class object
+class object : public std::enable_shared_from_this<object>
 {
+private:
+    object();
+
 public:
-    object(std::string_view name, object_ptr parent = nullptr);
+    static object_ptr create(std::string_view name, object_ptr parent = nullptr);
     virtual ~object();
 
     std::string name();
@@ -29,7 +32,10 @@ public:
     void make_child_of(object_ptr parent);
 
     std::list<object_ptr> const& children() const;
-	object_ptr parent() const;
+    void move(object_ptr parent);
+    void remove_child(object_ptr child);
+
+    object_ptr parent() const;
 
 #pragma region signals
 public:
