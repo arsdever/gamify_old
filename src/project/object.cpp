@@ -28,7 +28,8 @@ object_ptr object::parent() const { return _parent.lock(); }
 void object::add_child(object_ptr obj)
 {
     obj->_parent = weak_from_this();
-    _children.push_back(obj);
+    if (std::find(_children.begin(), _children.end(), obj) == _children.end())
+        _children.push_back(obj);
 }
 
 void object::remove_child(object_ptr obj)
