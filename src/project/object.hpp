@@ -13,7 +13,8 @@ private:
     object();
 
 public:
-    static object_ptr create(std::string_view name, object_ptr parent = nullptr);
+    static object_ptr create(std::string_view name,
+                             object_ptr parent = nullptr);
     virtual ~object();
 
     std::string name();
@@ -39,8 +40,8 @@ public:
 
 #pragma region signals
 public:
-    boost::signals2::signal<void(object_ptr)> signal_parent_changed;
-    boost::signals2::signal<void()> signal_children_list_changed;
+    boost::signals2::signal<void(object_ptr)> on_parent_changed;
+    boost::signals2::signal<void()> on_children_list_changed;
 #pragma endregion
 
 private:
