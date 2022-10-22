@@ -1,6 +1,7 @@
 #pragma once
 
 #include <project/prototypes.hpp>
+#include <unordered_map>
 
 namespace g::view
 {
@@ -40,3 +41,4 @@ private:
 };
 
 } // namespace g::view
+
