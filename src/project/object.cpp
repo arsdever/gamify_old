@@ -25,7 +25,7 @@ std::list<object_ptr> const& object::children() const { return _children; }
 
 object_ptr object::parent() const { return _parent.lock(); }
 
-void object::add_child(object_ptr obj)
+object_ptr object::add_child(object_ptr obj)
 {
     if (std::find(_children.begin(), _children.end(), obj) == _children.end())
     {
@@ -41,6 +41,7 @@ void object::add_child(object_ptr obj)
         on_children_list_changed();
         obj->on_parent_changed(obj->_parent.lock());
     }
+    return obj;
 }
 
 void object::remove_child(object_ptr obj)
