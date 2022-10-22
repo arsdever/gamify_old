@@ -27,23 +27,26 @@ object_ptr object::parent() const { return _parent.lock(); }
 
 void object::add_child(object_ptr obj)
 {
-    if (std::find(_children.begin(), _children.end(), obj) == _children.end()) {
-        //As the parent is being changed this child should be removed from the old parent.
-        if (object_ptr parent = obj->_parent.lock()){
+    if (std::find(_children.begin(), _children.end(), obj) == _children.end())
+    {
+        // As the parent is being changed this child should be removed from the
+        // old parent.
+        if (object_ptr parent = obj->_parent.lock())
+        {
             parent->remove_child(obj);
         }
 
         obj->_parent = weak_from_this();
         _children.push_back(obj);
-        signal_children_list_changed();
-        obj->signal_parent_changed(obj->_parent.lock());
+        on_children_list_changed();
+        obj->on_parent_changed(obj->_parent.lock());
     }
 }
 
 void object::remove_child(object_ptr obj)
 {
-    signal_children_list_changed();
-    obj->signal_parent_changed(shared_from_this());
+    on_children_list_changed();
+    obj->on_parent_changed(shared_from_this());
     _children.remove(obj);
     obj->_parent.reset();
 }
