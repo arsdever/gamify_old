@@ -72,7 +72,6 @@ TEST(object, signals)
     EXPECT_EQ(children_change_count, 1);
     EXPECT_EQ(parent_change_count, 1);
 
-
     g::project::object_ptr new_parent =
         g::project::object::create("New Parent", nullptr);
     new_parent->add_child(child);
