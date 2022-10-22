@@ -3,23 +3,76 @@
 #include "view/scene_view.hpp"
 
 #include "view/scene_model.hpp"
+#include <project/object.hpp>
 #include <project/project.hpp>
 #include <project/scene.hpp>
 
 namespace g::view
 {
 
+// TODO: Improve counting of the unnamed objects
+static int object_index = 0;
+
 SceneView::SceneView(project::scene_ptr scene, QWidget* parent)
     : QTreeView { parent }
     , _scene { scene }
 {
     setModel(new SceneModel(_scene));
-    QAction* addObjectAction = new QAction { "New empty", this };
-    connect(addObjectAction,
-            &QAction::triggered,
+
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this,
+            &QWidget::customContextMenuRequested,
             this,
-            [ this ] { _scene->create_object("Unnamed"); });
-    addAction(addObjectAction);
+            &SceneView::onContextMenu);
+}
+
+void SceneView::onContextMenu(const QPoint& pos)
+{
+    QMenu menu { this };
+
+    auto index = indexAt(pos);
+    if (index.isValid())
+    {
+        QAction* newObject = menu.addAction("New empty");
+        QAction* deleteAction = menu.addAction("Delete");
+
+        auto object = model()
+                          ->data(index, SceneModel::ObjectRole)
+                          .value<project::object_ptr>();
+        if (object)
+        {
+            connect(newObject,
+                    &QAction::triggered,
+                    this,
+                    [ this, object ]
+                    {
+                object->on_children_list_changed.connect(
+                    [ this ]() { model()->layoutChanged(); });
+                object->add_child(
+                    project::object::create(object->name() + " child"));
+            });
+
+            connect(deleteAction,
+                    &QAction::triggered,
+                    this,
+                    [ this, object ]
+                    {
+                if (object->parent())
+                {
+                    object->parent()->remove_child(object);
+                }
+                else
+                {
+                    _scene->remove_child(object);
+                }
+            });
+            menu.exec(mapToGlobal(pos));
+        }
+    }
+    else
+    {
+        menu.exec(mapToGlobal(pos));
+    }
 }
 
 } // namespace g::view
