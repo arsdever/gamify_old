@@ -79,4 +79,7 @@ TEST(object, signals)
     EXPECT_EQ(children_change_count, 2); // Removed 'child' from children. 
     EXPECT_EQ(parent_change_count, 3);  //Removed old parent. Added new parent.
 
+    g::project::object_ptr new_child =
+        g::project::object::create("New Child", parent);
+    EXPECT_EQ(children_change_count, 4);
 }
