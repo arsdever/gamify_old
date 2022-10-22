@@ -1,3 +1,5 @@
+#include <stdafx>
+
 #include "view/scene_model.hpp"
 
 #include <project/object.hpp>
