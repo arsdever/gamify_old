@@ -46,25 +46,15 @@ void SceneView::onContextMenu(const QPoint& pos)
                     this,
                     [ this, object ]
                     {
-                object->on_children_list_changed.connect(
-                    [ this ]() { model()->layoutChanged(); });
-                object->add_child(
-                    project::object::create(object->name() + " child"));
+                qobject_cast<SceneModel*>(model())->addChild(
+                    object, object->name() + " child");
             });
 
             connect(deleteAction,
                     &QAction::triggered,
                     this,
-                    [ this, object ]
-                    {
-                if (object->parent())
-                {
-                    object->parent()->remove_child(object);
-                }
-                else
-                {
-                    _scene->remove_child(object);
-                }
+                    [ this, object ] {
+                qobject_cast<SceneModel*>(model())->removeObject(object);
             });
             menu.exec(mapToGlobal(pos));
         }

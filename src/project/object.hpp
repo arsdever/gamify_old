@@ -45,6 +45,10 @@ public:
 #pragma region signals
 public:
     boost::signals2::signal<void(object_ptr)> on_parent_changed;
+    boost::signals2::signal<void(object_ptr, object_ptr)> on_before_child_added;
+    boost::signals2::signal<void(object_ptr, object_ptr)> on_before_child_removed;
+    boost::signals2::signal<void(object_ptr, object_ptr)> on_child_added;
+    boost::signals2::signal<void(object_ptr, object_ptr)> on_child_removed;
     boost::signals2::signal<void()> on_children_list_changed;
 #pragma endregion
 

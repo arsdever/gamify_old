@@ -36,20 +36,24 @@ object_ptr object::add_child(object_ptr obj)
             parent->remove_child(obj);
         }
 
+        on_before_child_added(shared_from_this(), obj);
         obj->_parent = weak_from_this();
         _children.push_back(obj);
         on_children_list_changed();
         obj->on_parent_changed(obj->_parent.lock());
+        on_child_added(shared_from_this(), obj);
     }
     return obj;
 }
 
 void object::remove_child(object_ptr obj)
 {
-    on_children_list_changed();
-    obj->on_parent_changed(shared_from_this());
+    on_before_child_removed(shared_from_this(), obj);
     _children.remove(obj);
     obj->_parent.reset();
+    on_children_list_changed();
+    obj->on_parent_changed(shared_from_this());
+    on_child_removed(shared_from_this(), obj);
 }
 
 void object::move(object_ptr parent)

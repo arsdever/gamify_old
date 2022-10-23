@@ -31,11 +31,15 @@ public:
     QModelIndex parent(const QModelIndex& index) const override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 
-private:
-    project::object_ptr objectAtIndex(const QModelIndex& index) const;
+    void addChild(project::object_ptr parent, std::string_view name);
+    void removeObject(project::object_ptr object);
 
 private:
-    mutable std::unordered_map<void*, QModelIndex> _indexMap;
+    project::object_ptr objectAtIndex(const QModelIndex& index) const;
+    std::size_t idFromObject(project::object_ptr obj) const;
+
+private:
+    mutable std::unordered_map<std::size_t, std::pair<project::object_wptr, QModelIndex>> _indexMap;
     project::scene_ptr _scene;
 };
 
