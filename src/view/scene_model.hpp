@@ -2,6 +2,8 @@
 
 #include <project/prototypes.hpp>
 
+Q_DECLARE_METATYPE(g::project::object_ptr)
+
 namespace g::view
 {
 

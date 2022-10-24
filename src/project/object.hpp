@@ -28,7 +28,7 @@ public:
         std::for_each(std::begin(children),
                       std::end(children),
                       [ this ](object_ptr child)
-                      { [[maybe_unused]] add_child(child); });
+                      { add_child(child); });
     }
 
     void make_child_of(object_ptr parent);
