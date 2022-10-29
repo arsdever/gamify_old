@@ -9,11 +9,12 @@ namespace g::project
 
 class object : public std::enable_shared_from_this<object>
 {
-private:
+protected:
     object();
 
 public:
-    static object_ptr create(std::string_view name, object_ptr parent = nullptr);
+    static object_ptr create(std::string_view name,
+                             object_ptr parent = nullptr);
     virtual ~object();
 
     std::string name();
