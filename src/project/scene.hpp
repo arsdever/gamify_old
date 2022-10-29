@@ -17,7 +17,8 @@ public:
     object_ptr create_object(std::string_view name,
                              object_ptr parent = nullptr);
 
-    std::list<object_ptr> const& objects() const;
+    std::list<object_ptr> objects() const;
+    std::list<behavior_ptr> behaviors() const;
 
 #pragma region signals
 public:
