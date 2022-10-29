@@ -1,5 +1,5 @@
-set(HEADERS clock.hpp)
-set(SOURCES clock.cpp)
+set(HEADERS engine.hpp)
+set(SOURCES engine.cpp)
 
 add_library(g_engine STATIC ${HEADERS} ${SOURCES})
 add_library(g::engine ALIAS g_engine)
