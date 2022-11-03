@@ -1,7 +1,7 @@
 find_package(Boost REQUIRED)
 
-set(HEADERS behavior.hpp game_object.hpp project.hpp object.hpp scene.hpp prototypes.hpp)
-set(SOURCES behavior.cpp game_object.cpp project.cpp object.cpp scene.cpp)
+set(HEADERS behavior.hpp behavior_registry.hpp game_object.hpp project.hpp object.hpp scene.hpp prototypes.hpp)
+set(SOURCES behavior.cpp behavior_registry.cpp game_object.cpp project.cpp object.cpp scene.cpp)
 
 add_library(g_project STATIC ${SOURCES} ${HEADERS})
 add_library(g::project ALIAS g_project)

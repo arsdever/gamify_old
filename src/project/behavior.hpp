@@ -9,8 +9,11 @@ namespace g::project
 
 class behavior : public object
 {
-public:
+protected:
     behavior(object_wptr object);
+
+public:
+    static behavior_ptr create(object_wptr object);
     virtual ~behavior() = default;
 
     virtual void init();

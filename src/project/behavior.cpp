@@ -8,6 +8,11 @@ behavior::behavior(object_wptr object)
 {
 }
 
+behavior_ptr behavior::create(object_wptr object)
+{
+    return std::shared_ptr<behavior>(new behavior { object });
+}
+
 void behavior::init() { }
 
 void behavior::update() { }

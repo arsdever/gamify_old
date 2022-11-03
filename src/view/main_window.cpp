@@ -4,8 +4,10 @@
 
 #include "view/scene_view.hpp"
 #include <engine/engine.hpp>
+#include <project/behavior_registry.hpp>
 #include <project/project.hpp>
 #include <project/scene.hpp>
+#include <spdlog/spdlog.h>
 
 namespace g::view
 {
@@ -39,6 +41,20 @@ MainWindow::MainWindow(QWidget* parent)
         _engine->set_scene(_scene);
         _engine->run();
     });
+
+    QLibrary lib("build/src/sample_game/sample_game");
+    lib.load();
+    typedef void (*registrer)(project::behavior_registry&);
+
+    registrer func = (registrer)lib.resolve("register_behavior_types");
+
+    if (func)
+        func(project::behavior_registry::instance());
+
+    spdlog::info(
+        "List of available behaviors:\n  > {}",
+        fmt::join(project::behavior_registry::instance().available_types(),
+                  "\n  > "));
 }
 
 } // namespace g::view

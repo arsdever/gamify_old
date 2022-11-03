@@ -12,3 +12,4 @@
 #include <qtoolbar>
 #include <qtreewidget>
 #include <qwidget>
+#include <qlibrary>
