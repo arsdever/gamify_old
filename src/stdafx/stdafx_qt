@@ -9,5 +9,6 @@
 #include <qmenubar>
 #include <qmodelindex>
 #include <qstringview>
+#include <qtoolbar>
 #include <qtreewidget>
 #include <qwidget>

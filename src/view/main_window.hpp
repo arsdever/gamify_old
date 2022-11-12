@@ -1,6 +1,8 @@
 #pragma once
 
 #include <project/prototypes.hpp>
+#include <engine/prototypes.hpp>
+
 namespace g::view
 {
 
@@ -17,6 +19,7 @@ private:
 
     QWidget* _sceneWidget;
     QWidget* _view;
+    engine::engine_ptr _engine;
 };
 
 } // namespace g::view

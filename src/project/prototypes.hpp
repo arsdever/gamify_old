@@ -27,4 +27,14 @@ using object_cptr = std::shared_ptr<const object>;
 using object_cwptr = std::weak_ptr<const object>;
 using object_cuptr = std::unique_ptr<const object>;
 
+class game_object;
+using game_object_ptr = std::shared_ptr<game_object>;
+using game_object_wptr = std::weak_ptr<game_object>;
+using game_object_uptr = std::unique_ptr<game_object>;
+
+class behavior;
+using behavior_ptr = std::shared_ptr<behavior>;
+using behavior_wptr = std::weak_ptr<behavior>;
+using behavior_uptr = std::unique_ptr<behavior>;
+
 } // namespace g::project

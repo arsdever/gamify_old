@@ -3,6 +3,7 @@
 #include "view/main_window.hpp"
 
 #include "view/scene_view.hpp"
+#include <engine/engine.hpp>
 #include <project/project.hpp>
 #include <project/scene.hpp>
 
@@ -14,6 +15,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _project { std::make_shared<project::project>("Dummy project") }
     , _scene { project::scene::create("Dummy scene") }
     , _view { new QWidget }
+    , _engine { engine::engine::create() }
 {
     _project->add_scene(_scene);
     setCentralWidget(_view);
@@ -36,6 +38,18 @@ MainWindow::MainWindow(QWidget* parent)
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");
     sceneMenu->addActions(_sceneWidget->actions());
+
+    QToolBar* toolBar = addToolBar("Scene");
+    QAction* playAction = new QAction("Play", this);
+    toolBar->addAction(playAction);
+    connect(playAction,
+            &QAction::triggered,
+            this,
+            [ this ]
+            {
+        _engine->set_scene(_scene);
+        _engine->run();
+    });
 }
 
 } // namespace g::view
