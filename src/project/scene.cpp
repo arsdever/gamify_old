@@ -8,9 +8,13 @@
 namespace g::project
 {
 
-scene::scene(std::string_view name)
-    : _name(name)
+scene::scene() = default;
+
+scene_ptr scene::create(std::string_view name)
 {
+    scene_ptr s { new scene {} };
+    s->_name = name;
+    return s;
 }
 
 std::string scene::name() const { return _name; }

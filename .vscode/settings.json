@@ -4,6 +4,7 @@
 		"-DQT_VERSION=6"
 	],
 	"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+	"files.trimFinalNewlines": true,
 	"files.associations": {
 		"stdafx_qt": "cpp",
 		"stdafx": "cpp",
