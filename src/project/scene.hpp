@@ -3,30 +3,18 @@
 #include <project/prototypes.hpp>
 
 #include <boost/signals2.hpp>
+#include <project/object.hpp>
 
 namespace g::project
 {
 
-class scene
+class scene : public object
 {
+protected:
+    scene();
+
 public:
-    scene(std::string_view name);
-
-    std::string name() const;
-
-    object_ptr create_object(std::string_view name,
-                             object_ptr parent = nullptr);
-
-    std::list<object_ptr> const& objects() const;
-
-#pragma region signals
-public:
-    boost::signals2::signal<void(object_ptr)> on_object_added;
-#pragma endregion
-
-private:
-    std::string _name;
-    std::list<object_ptr> _objects;
+    static scene_ptr create(std::string_view name);
 };
 
 } // namespace g::project
