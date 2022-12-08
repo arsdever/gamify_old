@@ -11,3 +11,5 @@
 #include <qstringview>
 #include <qtreewidget>
 #include <qwidget>
+#include <qtableview>
+#include <qdatetime>
