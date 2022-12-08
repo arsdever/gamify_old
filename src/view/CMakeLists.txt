@@ -5,8 +5,8 @@ set(CMAKE_AUTORCC ON)
 find_package(${QT_LIB_NAME} REQUIRED COMPONENTS Widgets)
 find_package(Boost REQUIRED)
 
-set(HEADERS main_window.hpp scene_model.hpp scene_view.hpp)
-set(SOURCES main_window.cpp scene_model.cpp scene_view.cpp)
+set(HEADERS main_window.hpp scene_model.hpp scene_view.hpp logging/logger.hpp)
+set(SOURCES main_window.cpp scene_model.cpp scene_view.cpp logging/logger.cpp)
 
 add_library(g_view STATIC ${HEADERS} ${SOURCES})
 add_library(g::view ALIAS g_view)

@@ -3,6 +3,14 @@
 		// "-DCMAKE_TOOLCHAIN_FILE=${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake",
 		"-DQT_VERSION=6"
 	],
+	"cmake.debugConfig": {
+		"environment": [
+			{
+				"name": "SPDLOG_LEVEL",
+				"value": "trace"
+			}
+		]
+	},
 	"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
 	"files.trimFinalNewlines": true,
 	"files.associations": {
