@@ -16,6 +16,8 @@
 	"files.associations": {
 		"stdafx_qt": "cpp",
 		"stdafx": "cpp",
-		"format": "cpp"
+		"format": "cpp",
+		"qapplication": "cpp",
+		"qwidget": "cpp"
 	}
 }
