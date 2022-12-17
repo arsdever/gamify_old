@@ -5,9 +5,6 @@
 #include "project/project.hpp"
 #include "project/scene.hpp"
 #include "qspdlog/qspdlog.hpp"
-#include "view/logging/logger.hpp"
-#include "view/logging/logger_model.hpp"
-#include "view/logging/qt_logger_sink.hpp"
 #include "view/scene_view.hpp"
 #include <spdlog/spdlog.h>
 
