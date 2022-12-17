@@ -4,6 +4,7 @@
 
 #include "project/project.hpp"
 #include "project/scene.hpp"
+#include "qspdlog/qspdlog.hpp"
 #include "view/logging/logger.hpp"
 #include "view/logging/logger_model.hpp"
 #include "view/logging/qt_logger_sink.hpp"
@@ -57,17 +58,13 @@ void MainWindow::initializeLoggerDockWidget()
 {
     auto loggerDockWidget = new QDockWidget("Logger", this);
 
-    QTableView* loggerView = new QTableView;
-    loggerDockWidget->setWidget(loggerView);
-    auto model = new logger_model;
-    loggerView->setModel(model);
+    QSpdLog* qspdlog = new QSpdLog;
+    // register all loggers into the qspldog widget
+    auto& registry = spdlog::details::registry::instance();
+    registry.apply_all([ qspdlog ](std::shared_ptr<spdlog::logger> logger)
+                       { qspdlog->registerLogger(logger); });
 
-    spdlog::details::registry::instance().apply_all(
-        [ model ](g::common::logger_ptr logger)
-        {
-        logger->sinks().emplace_back(
-            std::make_shared<g::view::qt_logger_sink_mt>(*model));
-    });
+    loggerDockWidget->setWidget(qspdlog);
     addDockWidget(Qt::BottomDockWidgetArea, loggerDockWidget);
 }
 
