@@ -56,10 +56,11 @@ void MainWindow::initializeLoggerDockWidget()
     auto loggerDockWidget = new QDockWidget("Logger", this);
 
     QSpdLog* qspdlog = new QSpdLog;
+    qspdlog->setAutoScrollPolicy(AutoScrollPolicy::AutoScrollPolicyEnabledIfBottom);
     // register all loggers into the qspldog widget
     auto& registry = spdlog::details::registry::instance();
     registry.apply_all([ qspdlog ](std::shared_ptr<spdlog::logger> logger)
-                       { qspdlog->registerLogger(logger); });
+                       { logger->sinks().push_back(qspdlog->sink()); });
 
     loggerDockWidget->setWidget(qspdlog);
     addDockWidget(Qt::BottomDockWidgetArea, loggerDockWidget);
