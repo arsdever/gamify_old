@@ -1,13 +1,24 @@
 {
 	"cmake.configureArgs": [
-		// "-DCMAKE_TOOLCHAIN_FILE=${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake",
+		"-DCMAKE_TOOLCHAIN_FILE=${env:VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake",
 		"-DQT_VERSION=6"
 	],
+	"cmake.debugConfig": {
+		"environment": [
+			{
+				"name": "SPDLOG_LEVEL",
+				"value": "trace"
+			}
+		]
+	},
 	"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
 	"files.trimFinalNewlines": true,
 	"files.associations": {
 		"stdafx_qt": "cpp",
 		"stdafx": "cpp",
-		"format": "cpp"
-	}
+		"format": "cpp",
+		"qapplication": "cpp",
+		"qwidget": "cpp"
+	},
+	"sonarlint.pathToCompileCommands": "${workspaceFolder}\\build\\compile_commands.json"
 }

@@ -12,6 +12,12 @@ public:
     MainWindow(QWidget* parent = nullptr);
 
 private:
+    void initializeDockWidgets();
+
+    void initializeProjectExplorerDockWidget();
+    void initializeLoggerDockWidget();
+
+private:
     project::project_ptr _project;
     project::scene_ptr _scene;
 

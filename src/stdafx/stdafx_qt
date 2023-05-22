@@ -3,11 +3,14 @@
 #include <qabstracttablemodel>
 #include <qaction>
 #include <qapplication>
+#include <qdatetime>
 #include <qdockwidget>
+#include <qlistview>
 #include <qmainwindow>
 #include <qmenu>
 #include <qmenubar>
 #include <qmodelindex>
 #include <qstringview>
+#include <qtableview>
 #include <qtreewidget>
 #include <qwidget>
