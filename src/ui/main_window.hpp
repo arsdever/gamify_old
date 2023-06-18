@@ -22,7 +22,7 @@ private:
     project::scene_ptr _scene;
 
     QWidget* _sceneWidget;
-    QWidget* _view;
+    QWidget* _viewport;
 };
 
 } // namespace g::ui

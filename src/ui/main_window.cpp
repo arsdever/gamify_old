@@ -6,6 +6,7 @@
 #include "project/scene.hpp"
 #include "qspdlog/qspdlog.hpp"
 #include "ui/scene_view.hpp"
+#include "viewport/viewport.hpp"
 #include <spdlog/spdlog.h>
 
 namespace g::ui
@@ -15,12 +16,12 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow { parent }
     , _project { std::make_shared<project::project>("Dummy project") }
     , _scene { project::scene::create("Dummy scene") }
-    , _view { new QWidget }
+    , _viewport { new viewport::Viewport }
 {
     initializeDockWidgets();
 
     _project->add_scene(_scene);
-    setCentralWidget(_view);
+    setCentralWidget(_viewport);
 
     _scene->add_child(project::object::create("Dummy object"))
         ->add_child(project::object::create("Dummy child"));

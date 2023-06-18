@@ -11,5 +11,5 @@ set(SOURCES main_window.cpp scene_model.cpp scene_view.cpp)
 add_library(g_ui STATIC ${HEADERS} ${SOURCES})
 add_library(g::ui ALIAS g_ui)
 
-target_link_libraries(g_ui PUBLIC Qt::Core Qt::Widgets Boost::boost g::project qspdlog::lib)
+target_link_libraries(g_ui PUBLIC Qt::Core Qt::Widgets Boost::boost g::project g::viewport qspdlog::lib)
 target_precompile_headers(g_ui REUSE_FROM stdafx_qt)
