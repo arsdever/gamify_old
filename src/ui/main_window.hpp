@@ -2,7 +2,7 @@
 
 #include <project/prototypes.hpp>
 
-class QTextEdit;
+class QPlainTextEdit;
 
 namespace g::ui
 {
@@ -28,8 +28,8 @@ private:
     QWidget* _viewport;
 
     QWidget* _shaderEditor;
-    QTextEdit* _vertexShaderEditor;
-    QTextEdit* _fragmentShaderEditor;
+    QPlainTextEdit* _vertexShaderEditor;
+    QPlainTextEdit* _fragmentShaderEditor;
 };
 
 } // namespace g::ui

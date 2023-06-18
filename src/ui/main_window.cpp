@@ -1,5 +1,5 @@
 #include <QTabWidget>
-#include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QToolBar>
 #include <QToolButton>
 #include <stdafx_qt>
@@ -23,8 +23,8 @@ MainWindow::MainWindow(QWidget* parent)
     , _scene { project::scene::create("Dummy scene") }
     , _viewport { new viewport::Viewport }
     , _shaderEditor { new QTabWidget }
-    , _vertexShaderEditor { new QTextEdit }
-    , _fragmentShaderEditor { new QTextEdit }
+    , _vertexShaderEditor { new QPlainTextEdit }
+    , _fragmentShaderEditor { new QPlainTextEdit }
 {
     initializeDockWidgets();
 
