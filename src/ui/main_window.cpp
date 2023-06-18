@@ -8,6 +8,7 @@
 #include "ui/scene_view.hpp"
 #include "viewport/viewport.hpp"
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/sink.h>
 
 namespace g::ui
 {
@@ -56,9 +57,10 @@ void MainWindow::initializeLoggerDockWidget()
 {
     auto loggerDockWidget = new QDockWidget("Logger", this);
 
-    QSpdLog* qspdlog = new QSpdLog;
+    QSpdLog* qspdlog = new QSpdLog(this);
     qspdlog->setAutoScrollPolicy(
         AutoScrollPolicy::AutoScrollPolicyEnabledIfBottom);
+    qspdlog->sink()->set_level(spdlog::level::info);
     // register all loggers into the qspldog widget
     auto& registry = spdlog::details::registry::instance();
     registry.apply_all([ qspdlog ](std::shared_ptr<spdlog::logger> logger)
