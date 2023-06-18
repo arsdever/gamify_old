@@ -26,17 +26,21 @@ protected:
 
 private:
     QOpenGLFunctions_3_3_Core* checkAndGetGLFunctions();
-    void updateShader(std::string_view source, unsigned int& shader);
+    void updateShader(std::string_view source,
+                      unsigned int& shader,
+                      unsigned int shaderType);
 
 private:
     std::string _vertexShaderSource;
     std::string _fragmentShaderSource;
 
-    unsigned int _vertexShader;
-    unsigned int _fragmentShader;
-    unsigned int _shaderProgram;
+    unsigned int _vertexShader { 0 };
+    unsigned int _fragmentShader { 0 };
+    unsigned int _shaderProgram { 0 };
 
-    unsigned int VBO, VAO, EBO;
+    unsigned int VBO { 0 };
+    unsigned int VAO { 0 };
+    unsigned int EBO { 0 };
 };
 
 } // namespace g::viewport

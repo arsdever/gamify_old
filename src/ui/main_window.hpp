@@ -1,6 +1,9 @@
 #pragma once
 
 #include <project/prototypes.hpp>
+
+class QTextEdit;
+
 namespace g::ui
 {
 
@@ -23,6 +26,10 @@ private:
 
     QWidget* _sceneWidget;
     QWidget* _viewport;
+
+    QWidget* _shaderEditor;
+    QTextEdit* _vertexShaderEditor;
+    QTextEdit* _fragmentShaderEditor;
 };
 
 } // namespace g::ui

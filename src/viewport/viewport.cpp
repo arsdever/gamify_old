@@ -25,29 +25,31 @@ Viewport::~Viewport() = default;
 void Viewport::updateVertexShader(std::string_view source)
 {
     _vertexShaderSource = source;
-    updateShader(source, _vertexShader);
+    updateShader(source, _vertexShader, GL_VERTEX_SHADER);
 }
 
 void Viewport::updateFragmentShader(std::string_view source)
 {
     _fragmentShaderSource = source;
-    updateShader(source, _fragmentShader);
+    updateShader(source, _fragmentShader, GL_FRAGMENT_SHADER);
 }
 
 void Viewport::updateShaderProgram()
 {
     auto* f = checkAndGetGLFunctions();
 
-    if (!_shaderProgram)
+    if (_shaderProgram)
     {
-        _shaderProgram = f->glCreateProgram();
+        f->glDeleteProgram(_shaderProgram);
     }
+
+    _shaderProgram = f->glCreateProgram();
 
     unsigned int success;
     f->glAttachShader(_shaderProgram, _vertexShader);
 
     success = f->glGetError();
-    if (!success)
+    if (success)
     {
         logger->error("Failed to attach vertex shader. Error code {}", success);
         return;
@@ -56,7 +58,7 @@ void Viewport::updateShaderProgram()
     f->glAttachShader(_shaderProgram, _fragmentShader);
 
     success = f->glGetError();
-    if (!success)
+    if (success)
     {
         logger->error("Failed to attach fragment shader. Error code {}",
                       success);
@@ -68,8 +70,9 @@ void Viewport::updateShaderProgram()
     f->glGetProgramiv(_shaderProgram, GL_LINK_STATUS, (int*)&success);
     if (!success)
     {
-        char infoLog[ 512 ];
-        f->glGetProgramInfoLog(_shaderProgram, 512, nullptr, infoLog);
+        std::string infoLog;
+        infoLog.resize(512);
+        f->glGetProgramInfoLog(_shaderProgram, 512, nullptr, infoLog.data());
         logger->error(
             "Failed to link shader program. Error code {}. Info log: {}",
             success,
@@ -140,13 +143,15 @@ QOpenGLFunctions_3_3_Core* Viewport::checkAndGetGLFunctions()
     return f;
 }
 
-void Viewport::updateShader(std::string_view source, unsigned int& shader)
+void Viewport::updateShader(std::string_view source,
+                            unsigned int& shader,
+                            unsigned int shaderType)
 {
     auto* f = checkAndGetGLFunctions();
 
     if (!shader)
     {
-        shader = f->glCreateShader(GL_VERTEX_SHADER);
+        shader = f->glCreateShader(shaderType);
     }
 
     const char* sourcePtr = source.data();
@@ -160,9 +165,11 @@ void Viewport::updateShader(std::string_view source, unsigned int& shader)
         std::string infoLog;
         infoLog.resize(512);
         f->glGetShaderInfoLog(shader, 512, nullptr, infoLog.data());
-        logger->error("Failed to compile shader. Error code {}. Info log: {}",
-                      success,
-                      infoLog);
+        logger->error(
+            "Failed to compile {} shader. Error code {}. Info log: {}",
+            shaderType == GL_VERTEX_SHADER ? "vertex" : "fragment",
+            success,
+            infoLog);
         return;
     }
 

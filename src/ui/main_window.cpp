@@ -1,3 +1,7 @@
+#include <QTabWidget>
+#include <QTextEdit>
+#include <QToolBar>
+#include <QToolButton>
 #include <stdafx_qt>
 
 #include "ui/main_window.hpp"
@@ -7,8 +11,8 @@
 #include "qspdlog/qspdlog.hpp"
 #include "ui/scene_view.hpp"
 #include "viewport/viewport.hpp"
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/sink.h>
+#include <spdlog/spdlog.h>
 
 namespace g::ui
 {
@@ -18,6 +22,9 @@ MainWindow::MainWindow(QWidget* parent)
     , _project { std::make_shared<project::project>("Dummy project") }
     , _scene { project::scene::create("Dummy scene") }
     , _viewport { new viewport::Viewport }
+    , _shaderEditor { new QTabWidget }
+    , _vertexShaderEditor { new QTextEdit }
+    , _fragmentShaderEditor { new QTextEdit }
 {
     initializeDockWidgets();
 
@@ -37,6 +44,33 @@ MainWindow::MainWindow(QWidget* parent)
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");
     sceneMenu->addActions(_sceneWidget->actions());
+
+    QTabWidget* shaderEditorCasted = qobject_cast<QTabWidget*>(_shaderEditor);
+    shaderEditorCasted->addTab(_vertexShaderEditor, "Vertex shader");
+    shaderEditorCasted->addTab(_fragmentShaderEditor, "Fragment shader");
+
+    QToolBar* toolbar = addToolBar("Shader editor");
+    QToolButton* compileButton = new QToolButton;
+    compileButton->setText("Compile");
+    toolbar->addWidget(compileButton);
+
+    compileButton->connect(compileButton,
+                           &QToolButton::clicked,
+                           [ this ]
+                           {
+        viewport::Viewport* viewport =
+            qobject_cast<viewport::Viewport*>(_viewport);
+        viewport->updateVertexShader(
+            _vertexShaderEditor->toPlainText().toStdString());
+        viewport->updateFragmentShader(
+            _fragmentShaderEditor->toPlainText().toStdString());
+        viewport->updateShaderProgram();
+    });
+
+    QDockWidget* shaderEditorDockWidget =
+        new QDockWidget("Shader editor", this);
+    shaderEditorDockWidget->setWidget(_shaderEditor);
+    addDockWidget(Qt::RightDockWidgetArea, shaderEditorDockWidget);
 }
 
 void MainWindow::initializeDockWidgets()
