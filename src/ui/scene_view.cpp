@@ -1,13 +1,13 @@
 #include <stdafx_qt>
 
-#include "view/scene_view.hpp"
+#include "ui/scene_view.hpp"
 
-#include "view/scene_model.hpp"
+#include "ui/scene_model.hpp"
 #include <project/object.hpp>
 #include <project/project.hpp>
 #include <project/scene.hpp>
 
-namespace g::view
+namespace g::ui
 {
 
 // TODO: Improve counting of the unnamed objects
@@ -65,4 +65,4 @@ void SceneView::onContextMenu(const QPoint& pos)
     }
 }
 
-} // namespace g::view
+} // namespace g::ui

@@ -1,14 +1,14 @@
 #include <stdafx_qt>
 
-#include "view/main_window.hpp"
+#include "ui/main_window.hpp"
 
 #include "project/project.hpp"
 #include "project/scene.hpp"
 #include "qspdlog/qspdlog.hpp"
-#include "view/scene_view.hpp"
+#include "ui/scene_view.hpp"
 #include <spdlog/spdlog.h>
 
-namespace g::view
+namespace g::ui
 {
 
 MainWindow::MainWindow(QWidget* parent)
@@ -56,7 +56,8 @@ void MainWindow::initializeLoggerDockWidget()
     auto loggerDockWidget = new QDockWidget("Logger", this);
 
     QSpdLog* qspdlog = new QSpdLog;
-    qspdlog->setAutoScrollPolicy(AutoScrollPolicy::AutoScrollPolicyEnabledIfBottom);
+    qspdlog->setAutoScrollPolicy(
+        AutoScrollPolicy::AutoScrollPolicyEnabledIfBottom);
     // register all loggers into the qspldog widget
     auto& registry = spdlog::details::registry::instance();
     registry.apply_all([ qspdlog ](std::shared_ptr<spdlog::logger> logger)
@@ -66,4 +67,4 @@ void MainWindow::initializeLoggerDockWidget()
     addDockWidget(Qt::BottomDockWidgetArea, loggerDockWidget);
 }
 
-} // namespace g::view
+} // namespace g::ui

@@ -5,5 +5,5 @@ add_subdirectory(stdafx)
 add_subdirectory(common)
 
 add_subdirectory(app)
-add_subdirectory(view)
+add_subdirectory(ui)
 add_subdirectory(project)

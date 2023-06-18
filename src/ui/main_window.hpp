@@ -1,7 +1,7 @@
 #pragma once
 
 #include <project/prototypes.hpp>
-namespace g::view
+namespace g::ui
 {
 
 class MainWindow : public QMainWindow
@@ -25,4 +25,4 @@ private:
     QWidget* _view;
 };
 
-} // namespace g::view
+} // namespace g::ui
