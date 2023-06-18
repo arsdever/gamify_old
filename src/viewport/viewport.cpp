@@ -172,8 +172,6 @@ void Viewport::updateShader(std::string_view source,
             infoLog);
         return;
     }
-
-    updateShaderProgram();
 }
 
 } // namespace g::viewport
