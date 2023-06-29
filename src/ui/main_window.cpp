@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget* parent)
     toolbar->addWidget(addAssetButton);
     connect(addAssetButton,
             &QToolButton::clicked,
-            [ this, assetsListView ]
+            [ this ]
             {
         QString file_path = QFileDialog::getOpenFileName(
             this, "Open asset", "", "All files (*.*)");
