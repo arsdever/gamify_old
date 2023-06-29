@@ -7,6 +7,8 @@ class QPlainTextEdit;
 namespace g::ui
 {
 
+class AssetManager;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -23,6 +25,7 @@ private:
 private:
     project::project_ptr _project;
     project::scene_ptr _scene;
+    ui::AssetManager* _assetManager;
 
     QWidget* _sceneWidget;
     QWidget* _viewport;
