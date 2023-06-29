@@ -1,5 +1,7 @@
-#include <QTabWidget>
+#include <QFileDialog>
+#include <QListView>
 #include <QPlainTextEdit>
+#include <QTabWidget>
 #include <QToolBar>
 #include <QToolButton>
 #include <stdafx_qt>
@@ -9,6 +11,7 @@
 #include "project/project.hpp"
 #include "project/scene.hpp"
 #include "qspdlog/qspdlog.hpp"
+#include "ui/asset_manager.hpp"
 #include "ui/scene_view.hpp"
 #include "viewport/viewport.hpp"
 #include <spdlog/sinks/sink.h>
@@ -21,6 +24,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow { parent }
     , _project { std::make_shared<project::project>("Dummy project") }
     , _scene { project::scene::create("Dummy scene") }
+    , _assetManager { new ui::AssetManager }
     , _viewport { new viewport::Viewport }
     , _shaderEditor { new QTabWidget }
     , _vertexShaderEditor { new QPlainTextEdit }
@@ -71,6 +75,27 @@ MainWindow::MainWindow(QWidget* parent)
         new QDockWidget("Shader editor", this);
     shaderEditorDockWidget->setWidget(_shaderEditor);
     addDockWidget(Qt::RightDockWidgetArea, shaderEditorDockWidget);
+
+    QDockWidget* assetsDockWidget = new QDockWidget("Assets", this);
+    QListView* assetsListView = new QListView;
+    assetsDockWidget->setWidget(assetsListView);
+    assetsListView->setModel(_assetManager);
+    addDockWidget(Qt::BottomDockWidgetArea, assetsDockWidget);
+
+    QToolButton* addAssetButton = new QToolButton;
+    addAssetButton->setText("Add asset");
+    toolbar->addWidget(addAssetButton);
+    connect(addAssetButton,
+            &QToolButton::clicked,
+            [ this, assetsListView ]
+            {
+        QString file_path = QFileDialog::getOpenFileName(
+            this, "Open asset", "", "All files (*.*)");
+        if (!file_path.isEmpty())
+        {
+            _assetManager->loadAsset(file_path.toStdString());
+        }
+    });
 }
 
 void MainWindow::initializeDockWidgets()

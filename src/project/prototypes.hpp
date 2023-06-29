@@ -27,4 +27,12 @@ using object_cptr = std::shared_ptr<const object>;
 using object_cwptr = std::weak_ptr<const object>;
 using object_cuptr = std::unique_ptr<const object>;
 
+class asset_manager;
+using asset_manager_ptr = std::shared_ptr<asset_manager>;
+using asset_manager_wptr = std::weak_ptr<asset_manager>;
+using asset_manager_uptr = std::unique_ptr<asset_manager>;
+using asset_manager_cptr = std::shared_ptr<const asset_manager>;
+using asset_manager_cwptr = std::weak_ptr<const asset_manager>;
+using asset_manager_cuptr = std::unique_ptr<const asset_manager>;
+
 } // namespace g::project
