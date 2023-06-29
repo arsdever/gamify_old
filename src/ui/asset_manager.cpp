@@ -43,13 +43,13 @@ QVariant AssetManager::data(const QModelIndex& index, int role) const
         {
         case Asset::AssetType::FBX:
             icon = QImage(":/icons/fbx.png")
-                       .scaled(QSize(16, 16),
+                       .scaled(QSize(128, 128),
                                Qt::KeepAspectRatio,
                                Qt::SmoothTransformation);
             break;
         case Asset::AssetType::PNG:
             icon = QImage(":/icons/png.png")
-                       .scaled(QSize(16, 16),
+                       .scaled(QSize(128, 128),
                                Qt::KeepAspectRatio,
                                Qt::SmoothTransformation);
             break;

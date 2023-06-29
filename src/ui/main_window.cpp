@@ -80,6 +80,7 @@ MainWindow::MainWindow(QWidget* parent)
     QListView* assetsListView = new QListView;
     assetsDockWidget->setWidget(assetsListView);
     assetsListView->setModel(_assetManager);
+    assetsListView->setViewMode(QListView::IconMode);
     assetsListView->setUniformItemSizes(true);
     addDockWidget(Qt::BottomDockWidgetArea, assetsDockWidget);
 
