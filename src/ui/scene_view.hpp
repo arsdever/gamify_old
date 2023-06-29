@@ -2,7 +2,7 @@
 
 #include <project/prototypes.hpp>
 
-namespace g::view
+namespace g::ui
 {
 
 class SceneView : public QTreeView
@@ -18,4 +18,4 @@ private:
     project::scene_ptr _scene;
 };
 
-} // namespace g::view
+} // namespace g::ui

@@ -1,7 +1,10 @@
 #pragma once
 
 #include <project/prototypes.hpp>
-namespace g::view
+
+class QPlainTextEdit;
+
+namespace g::ui
 {
 
 class MainWindow : public QMainWindow
@@ -22,7 +25,11 @@ private:
     project::scene_ptr _scene;
 
     QWidget* _sceneWidget;
-    QWidget* _view;
+    QWidget* _viewport;
+
+    QWidget* _shaderEditor;
+    QPlainTextEdit* _vertexShaderEditor;
+    QPlainTextEdit* _fragmentShaderEditor;
 };
 
-} // namespace g::view
+} // namespace g::ui

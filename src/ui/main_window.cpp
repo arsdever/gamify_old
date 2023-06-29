@@ -1,26 +1,35 @@
+#include <QTabWidget>
+#include <QPlainTextEdit>
+#include <QToolBar>
+#include <QToolButton>
 #include <stdafx_qt>
 
-#include "view/main_window.hpp"
+#include "ui/main_window.hpp"
 
 #include "project/project.hpp"
 #include "project/scene.hpp"
 #include "qspdlog/qspdlog.hpp"
-#include "view/scene_view.hpp"
+#include "ui/scene_view.hpp"
+#include "viewport/viewport.hpp"
+#include <spdlog/sinks/sink.h>
 #include <spdlog/spdlog.h>
 
-namespace g::view
+namespace g::ui
 {
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow { parent }
     , _project { std::make_shared<project::project>("Dummy project") }
     , _scene { project::scene::create("Dummy scene") }
-    , _view { new QWidget }
+    , _viewport { new viewport::Viewport }
+    , _shaderEditor { new QTabWidget }
+    , _vertexShaderEditor { new QPlainTextEdit }
+    , _fragmentShaderEditor { new QPlainTextEdit }
 {
     initializeDockWidgets();
 
     _project->add_scene(_scene);
-    setCentralWidget(_view);
+    setCentralWidget(_viewport);
 
     _scene->add_child(project::object::create("Dummy object"))
         ->add_child(project::object::create("Dummy child"));
@@ -35,6 +44,33 @@ MainWindow::MainWindow(QWidget* parent)
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");
     sceneMenu->addActions(_sceneWidget->actions());
+
+    QTabWidget* shaderEditorCasted = qobject_cast<QTabWidget*>(_shaderEditor);
+    shaderEditorCasted->addTab(_vertexShaderEditor, "Vertex shader");
+    shaderEditorCasted->addTab(_fragmentShaderEditor, "Fragment shader");
+
+    QToolBar* toolbar = addToolBar("Shader editor");
+    QToolButton* compileButton = new QToolButton;
+    compileButton->setText("Compile");
+    toolbar->addWidget(compileButton);
+
+    compileButton->connect(compileButton,
+                           &QToolButton::clicked,
+                           [ this ]
+                           {
+        viewport::Viewport* viewport =
+            qobject_cast<viewport::Viewport*>(_viewport);
+        viewport->updateVertexShader(
+            _vertexShaderEditor->toPlainText().toStdString());
+        viewport->updateFragmentShader(
+            _fragmentShaderEditor->toPlainText().toStdString());
+        viewport->updateShaderProgram();
+    });
+
+    QDockWidget* shaderEditorDockWidget =
+        new QDockWidget("Shader editor", this);
+    shaderEditorDockWidget->setWidget(_shaderEditor);
+    addDockWidget(Qt::RightDockWidgetArea, shaderEditorDockWidget);
 }
 
 void MainWindow::initializeDockWidgets()
@@ -55,8 +91,10 @@ void MainWindow::initializeLoggerDockWidget()
 {
     auto loggerDockWidget = new QDockWidget("Logger", this);
 
-    QSpdLog* qspdlog = new QSpdLog;
-    qspdlog->setAutoScrollPolicy(AutoScrollPolicy::AutoScrollPolicyEnabledIfBottom);
+    QSpdLog* qspdlog = new QSpdLog(this);
+    qspdlog->setAutoScrollPolicy(
+        AutoScrollPolicy::AutoScrollPolicyEnabledIfBottom);
+    qspdlog->sink()->set_level(spdlog::level::info);
     // register all loggers into the qspldog widget
     auto& registry = spdlog::details::registry::instance();
     registry.apply_all([ qspdlog ](std::shared_ptr<spdlog::logger> logger)
@@ -66,4 +104,4 @@ void MainWindow::initializeLoggerDockWidget()
     addDockWidget(Qt::BottomDockWidgetArea, loggerDockWidget);
 }
 
-} // namespace g::view
+} // namespace g::ui

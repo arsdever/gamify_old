@@ -4,7 +4,7 @@
 
 Q_DECLARE_METATYPE(g::project::object_ptr)
 
-namespace g::view
+namespace g::ui
 {
 
 class SceneModel : public QAbstractItemModel
@@ -45,4 +45,4 @@ private:
     project::scene_ptr _scene;
 };
 
-} // namespace g::view
+} // namespace g::ui

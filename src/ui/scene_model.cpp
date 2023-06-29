@@ -1,12 +1,12 @@
 #include <stdafx>
 
-#include "view/scene_model.hpp"
+#include "ui/scene_model.hpp"
 
 #include <project/object.hpp>
 #include <project/project.hpp>
 #include <project/scene.hpp>
 
-namespace g::view
+namespace g::ui
 {
 
 SceneModel::SceneModel(project::scene_ptr scene, QObject* parent)
@@ -159,4 +159,4 @@ std::size_t SceneModel::idFromObject(project::object_ptr obj) const
     return reinterpret_cast<std::size_t>(obj.get());
 }
 
-} // namespace g::view
+} // namespace g::ui
