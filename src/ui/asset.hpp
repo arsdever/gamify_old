@@ -10,7 +10,7 @@ namespace g::ui
 
 class Asset
 {
-private:
+public:
     enum class AssetType
     {
         FBX,
@@ -34,10 +34,10 @@ private:
         UNKNOWN
     };
 
+private:
     struct AssetContainerBase
     {
-        explicit AssetContainerBase(
-            const void* data) noexcept;
+        explicit AssetContainerBase(const void* data) noexcept;
         AssetContainerBase(AssetContainerBase const&) = delete;
         AssetContainerBase(AssetContainerBase&& r) noexcept;
         AssetContainerBase& operator=(AssetContainerBase const&) = delete;
@@ -58,6 +58,7 @@ public:
     virtual ~Asset();
 
     std::string name() const;
+    AssetType type() const;
 
     QWidget* previewWidget();
 

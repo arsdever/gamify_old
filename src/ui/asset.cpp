@@ -50,7 +50,7 @@ Asset::Asset(std::string_view file_path)
 
     if (!scene)
     {
-        logger->error("Failed to load file: {}", file_path);
+        logger->error("Failed to load asset: {}", importer.GetErrorString());
         return;
     }
 
@@ -59,8 +59,26 @@ Asset::Asset(std::string_view file_path)
 
 Asset::~Asset() = default;
 
-std::string Asset::name() const {
+std::string Asset::name() const
+{
     return std::filesystem::path(_file_path).filename().string();
+}
+
+Asset::AssetType Asset::type() const
+{
+    if (_container)
+        return _container->type();
+
+    std::string extension =
+        std::filesystem::path(_file_path).extension().string();
+    std::transform(
+        extension.begin(), extension.end(), extension.begin(), ::toupper);
+    if (extension == ".FBX")
+        return AssetType::FBX;
+    else if (extension == ".PNG")
+        return AssetType::PNG;
+
+    return AssetType::UNKNOWN;
 }
 
 } // namespace g::ui

@@ -34,9 +34,29 @@ QVariant AssetManager::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole)
     {
         return QString::fromStdString(_assets[ index.row() ]->name());
-    } else if (role == Qt::DecorationRole)
+    }
+    else if (role == Qt::DecorationRole)
     {
-        return QIcon(QString::fromStdString(_assets[ index.row() ]->name()));
+        QImage icon;
+
+        switch (_assets[ index.row() ]->type())
+        {
+        case Asset::AssetType::FBX:
+            icon = QImage(":/icons/fbx.png")
+                       .scaled(QSize(16, 16),
+                               Qt::KeepAspectRatio,
+                               Qt::SmoothTransformation);
+            break;
+        case Asset::AssetType::PNG:
+            icon = QImage(":/icons/png.png")
+                       .scaled(QSize(16, 16),
+                               Qt::KeepAspectRatio,
+                               Qt::SmoothTransformation);
+            break;
+        default: break;
+        }
+
+        return icon;
     }
     return QVariant();
 }
