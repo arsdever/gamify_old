@@ -1,8 +1,8 @@
-#include <stdafx>
-
 #include "project/object.hpp"
 
 #include "common/logger.hpp"
+#include "project/component.hpp"
+#include "resource_manager.hpp"
 
 namespace g::project
 {
@@ -12,90 +12,125 @@ namespace
 common::logger_ptr logger = common::get_logger("object");
 }
 
-object::object() = default;
-
-object_ptr object::create(std::string_view name, object_ptr parent)
+object::object()
+    : resource(resource_type::object)
 {
-    logger->trace("Creating an object with name {}", name);
-    std::shared_ptr<object> obj { new object() };
-    obj->_parent = parent;
-    obj->_name = name;
-
-    if (parent)
-        parent->add_child(obj);
-
-    return obj;
 }
 
 object::~object() = default;
 
+std::shared_ptr<object> object::create(std::string_view name,
+                                       std::shared_ptr<object> parent)
+{
+    logger->trace("Creating object {}", name);
+
+    std::shared_ptr<object> object_ { new object() };
+    object_->_name = name;
+
+    if (parent)
+    {
+        object_->_parent_uuid = parent->uuid();
+        parent->_children_uuid.push_back(object_->uuid());
+    }
+
+    resource_manager::get()->register_resource(object_);
+    return object_;
+}
+
 std::string object::name() { return _name; }
 
-std::list<object_ptr> const& object::children() const { return _children; }
-
-object_ptr object::parent() const { return _parent.lock(); }
-
-object_ptr object::add_child(object_ptr obj)
+std::list<common::uuid> const& object::children_uuid() const
 {
-    logger->trace("Adding child {} to {}", obj->name(), name());
-    if (std::find(_children.begin(), _children.end(), obj) == _children.end())
-    {
-        // As the parent is being changed this child should be removed from the
-        // old parent.
-        if (object_ptr parent = obj->_parent.lock())
-        {
-            logger->trace(
-                "Removing child {} from {}", obj->name(), parent->name());
-            parent->remove_child(obj);
-        }
-
-        on_before_child_added(shared_from_this(), obj);
-        obj->_parent = weak_from_this();
-        _children.push_back(obj);
-        on_children_list_changed();
-        logger->trace("Child {} added to {}", obj->name(), name());
-        obj->on_parent_changed(obj->_parent.lock());
-        on_child_added(shared_from_this(), obj);
-    }
-    return obj;
+    return _children_uuid;
 }
 
-void object::remove_child(object_ptr obj)
+common::uuid object::parent_uuid() const { return _parent_uuid; }
+
+std::shared_ptr<object> object::parent() const
 {
-    logger->trace("Removing child {} from {}", obj->name(), name());
-    on_before_child_removed(shared_from_this(), obj);
-    _children.remove(obj);
-    logger->trace("Child {} removed from {}", obj->name(), name());
-    obj->_parent.reset();
-    on_children_list_changed();
-    obj->on_parent_changed(shared_from_this());
-    on_child_removed(shared_from_this(), obj);
+    if (_parent_uuid == common::uuid {})
+        return nullptr;
+
+    return resource_manager::get()->get_resource<object>(parent_uuid());
 }
 
-void object::move(object_ptr parent)
+void object::add_child(std::shared_ptr<object> child)
 {
-    logger->trace("Moving {} to {}", name(), parent->name());
-    if (parent == _parent.lock())
+    logger->trace("Adding child {} to {}", child->name(), name());
+    add_child_uuid(child->uuid());
+}
+
+void object::remove_child(std::shared_ptr<object> child)
+{
+    logger->trace("Removing child {} from {}", child->name(), name());
+    remove_child_uuid(child->uuid());
+}
+
+void object::change_parent(std::shared_ptr<object> parent)
+{
+    logger->trace("Setting parent of {} to {}", name(), parent->name());
+    change_parent_uuid(parent->uuid());
+}
+
+void object::add_child_uuid(common::uuid child_uuid)
+{
+    logger->trace("Adding child {} to {}", child_uuid, name());
+    _children_uuid.push_back(child_uuid);
+    resource_manager::get()
+        ->get_resource<object>(child_uuid)
+        ->_parent_uuid = uuid();
+}
+
+void object::remove_child_uuid(common::uuid child_uuid)
+{
+    logger->trace("Removing child {} from {}", child_uuid, name());
+    _children_uuid.remove(child_uuid);
+    resource_manager::get()
+        ->get_resource<object>(child_uuid)
+        ->_parent_uuid = common::uuid {};
+}
+
+void object::change_parent_uuid(common::uuid parent_uuid)
+{
+    logger->trace("Setting parent of {} to {}", name(), parent_uuid);
+    if (_parent_uuid != common::uuid {})
+        resource_manager::get()
+            ->get_resource<object>(parent_uuid)
+            ->_children_uuid.remove(uuid());
+    _parent_uuid = parent_uuid;
+    if (parent_uuid != common::uuid {})
+        resource_manager::get()
+            ->get_resource<object>(parent_uuid)
+            ->_children_uuid.push_back(uuid());
+}
+
+void object::add_component(std::shared_ptr<component> component_)
+{
+    logger->trace("Adding component {} to {}", component_->classname(), name());
+
+    if (std::find(_components_uuid.begin(),
+                  _components_uuid.end(),
+                  component_->uuid()) != _components_uuid.end())
     {
-        logger->trace(
-            "Object {} is already a child of {}", name(), parent->name());
+        logger->warn("Component {} already added to {}",
+                     component_->classname(),
+                     name());
         return;
     }
 
-    if (_parent.lock())
-    {
-        _parent.lock()->remove_child(shared_from_this());
-        logger->trace(
-            "Object {} removed from {}", name(), _parent.lock()->name());
-    }
-
-    _parent = parent;
-    parent->add_child(shared_from_this());
-    logger->trace("Object {} added to {}", name(), parent->name());
+    _components_uuid.push_back(component_->uuid());
 }
 
-object_cptr object::get_ptr() const { return shared_from_this(); }
-
-object_ptr object::get_ptr() { return shared_from_this(); }
+std::shared_ptr<component> object::get_component(std::string_view classname)
+{
+    for (auto const& component_uuid : _components_uuid)
+    {
+        std::shared_ptr<component> c =
+            resource_manager::get()->get_resource<component>(component_uuid);
+        if (c->classname() == classname)
+            return c;
+    }
+    return nullptr;
+}
 
 } // namespace g::project

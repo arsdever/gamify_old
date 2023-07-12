@@ -13,10 +13,8 @@ void configure_logger(int argc, char** argv)
     spdlog::cfg::load_argv_levels(argc, argv);
 }
 
-logger_ptr get_logger(std::string_view name)
+logger_ptr get_logger(std::string_view name, bool is_dummy)
 {
-    static auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-
     std::string name_str { name };
     auto logger = spdlog::get(name_str);
     if (logger)
@@ -24,7 +22,13 @@ logger_ptr get_logger(std::string_view name)
 
     logger = std::make_shared<spdlog::logger>(name_str);
 
-    logger->sinks().push_back(sink);
+    if (!is_dummy)
+    {
+        static auto sink =
+            std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        logger->sinks().push_back(sink);
+    }
+
     spdlog::register_logger(logger);
 
     return logger;

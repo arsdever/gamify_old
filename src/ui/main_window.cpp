@@ -8,7 +8,9 @@
 
 #include "ui/main_window.hpp"
 
+#include "project/object.hpp"
 #include "project/project.hpp"
+#include "project/resource_manager.hpp"
 #include "project/scene.hpp"
 #include "qspdlog/qspdlog.hpp"
 #include "ui/asset_manager.hpp"
@@ -30,20 +32,24 @@ MainWindow::MainWindow(QWidget* parent)
     , _vertexShaderEditor { new QPlainTextEdit }
     , _fragmentShaderEditor { new QPlainTextEdit }
 {
+    project::resource_manager::init();
     initializeDockWidgets();
 
     _project->add_scene(_scene);
     setCentralWidget(_viewport);
 
-    _scene->add_child(project::object::create("Dummy object"))
-        ->add_child(project::object::create("Dummy child"));
+    auto rootObject = project::object::create("Dummy object");
+    _scene->add_object(rootObject);
+    project::object::create("Dummy child", rootObject);
 
-    _scene->add_child(project::object::create("Dummy object 2"))
-        ->add_child(project::object::create("Dummy child 2"));
+    rootObject = project::object::create("Dummy object 2");
+    _scene->add_object(rootObject);
+    project::object::create("Dummy child 2", rootObject);
 
-    _scene->add_child(project::object::create("Dummy object 3"))
-        ->add_child(project::object::create("Dummy child 3"))
-        ->add_child(project::object::create("Dummy child 3.1"));
+    rootObject = project::object::create("Dummy object 3");
+    _scene->add_object(rootObject);
+    auto childObject = project::object::create("Dummy child 3", rootObject);
+    project::object::create("Dummy child 3.1", childObject);
 
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");
@@ -99,6 +105,8 @@ MainWindow::MainWindow(QWidget* parent)
         }
     });
 }
+
+MainWindow::~MainWindow() { project::resource_manager::deinit(); }
 
 void MainWindow::initializeDockWidgets()
 {

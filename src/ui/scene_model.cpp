@@ -2,9 +2,10 @@
 
 #include "ui/scene_model.hpp"
 
-#include <project/object.hpp>
-#include <project/project.hpp>
-#include <project/scene.hpp>
+#include "project/object.hpp"
+#include "project/project.hpp"
+#include "project/resource_manager.hpp"
+#include "project/scene.hpp"
 
 namespace g::ui
 {
@@ -46,32 +47,47 @@ QVariant SceneModel::data(const QModelIndex& index, int role) const
 QModelIndex
 SceneModel::index(int row, int column, const QModelIndex& parent) const
 {
-    if (!row && !column && !parent.isValid())
-    {
-        std::size_t id = idFromObject(_scene);
-        _indexMap[ id ] = std::make_pair(_scene, createIndex(row, column, id));
-        return _indexMap[ id ].second;
-    }
-
     if (row < 0 || column < 0 || row >= rowCount(parent) ||
         column >= columnCount(parent))
         return {};
 
-    project::object_ptr obj = nullptr;
-    std::list<project::object_ptr>::const_iterator it;
-    project::object_ptr parent_obj = objectAtIndex(parent);
-    it = parent_obj->children().begin();
+    if (!parent.isValid()) // pick a root object
+    {
+        auto rootObjectsUuid = _scene->objects();
+
+        if (row > rootObjectsUuid.size())
+        {
+            return {};
+        }
+
+        auto it = rootObjectsUuid.begin();
+        std::advance(it, row);
+        auto rootObject =
+            project::resource_manager::get_resource_static<project::object>(
+                *it);
+        std::size_t id = idFromObject(rootObject);
+        _indexMap[ id ] = std::make_pair(rootObject, createIndex(row, column, id));
+        return _indexMap[ id ].second;
+    }
+
+    std::shared_ptr<project::object> obj = nullptr;
+    auto parent_obj = objectAtIndex(parent);
+    auto it = parent_obj->children_uuid().begin();
 
     std::advance(it, row);
-    [[maybe_unused]] project::object_ptr child = *it;
-    std::size_t id = idFromObject(*it);
-    _indexMap[ id ] = std::make_pair(*it, createIndex(row, column, id));
+    auto child =
+        project::resource_manager::get_resource_static<project::object>(*it);
+    std::size_t id = idFromObject(child);
+    _indexMap[ id ] = std::make_pair(child, createIndex(row, column, id));
 
     return _indexMap[ id ].second;
 }
 
 QModelIndex SceneModel::parent(const QModelIndex& index) const
 {
+    if (!index.isValid())
+        return {};
+
     auto object = objectAtIndex(index);
     if (object && object->parent() != nullptr)
     {
@@ -85,12 +101,12 @@ QModelIndex SceneModel::parent(const QModelIndex& index) const
 int SceneModel::rowCount(const QModelIndex& parent) const
 {
     if (!parent.isValid())
-        return 1;
+        return _scene->objects().size();
 
     auto parentObject = objectAtIndex(parent);
 
     if (parentObject)
-        return parentObject->children().size();
+        return parentObject->children_uuid().size();
 
     return 0;
 }
@@ -100,9 +116,9 @@ void SceneModel::addChild(project::object_ptr parent, std::string_view name)
     if (parent)
     {
         auto parentIndex = _indexMap[ idFromObject(parent) ].second;
-        auto row = parent->children().size();
+        auto row = parent->children_uuid().size();
         beginInsertRows(parentIndex, row, row);
-        parent->add_child(project::object::create(name));
+        project::object::create(name, parent);
         endInsertRows();
     }
     else
@@ -118,9 +134,10 @@ void SceneModel::removeObject(project::object_ptr object)
     if (parent)
     {
         auto parentIndex = _indexMap[ idFromObject(parent) ].second;
-        auto it = std::find(
-            parent->children().begin(), parent->children().end(), object);
-        auto row = std::distance(parent->children().begin(), it);
+        auto it = std::find(parent->children_uuid().begin(),
+                            parent->children_uuid().end(),
+                            object->uuid());
+        auto row = std::distance(parent->children_uuid().begin(), it);
         beginRemoveRows(parentIndex, row, row);
         parent->remove_child(object);
         _indexMap.erase(idFromObject(object));
@@ -135,23 +152,23 @@ void SceneModel::removeObject(project::object_ptr object)
 
 project::object_ptr SceneModel::objectAtIndex(const QModelIndex& index) const
 {
-    if (index.isValid())
+    if (!index.isValid())
     {
-        auto it = _indexMap.find(index.internalId());
-        project::object_ptr obj = nullptr;
-        if (it == _indexMap.end())
-            return {};
-
-        obj = it->second.first.lock();
-
-        if (obj)
-            return obj;
-
-        _indexMap.erase(it);
         return {};
     }
 
-    return _scene;
+    auto it = _indexMap.find(index.internalId());
+    project::object_ptr obj = nullptr;
+    if (it == _indexMap.end())
+        return {};
+
+    obj = it->second.first.lock();
+
+    if (obj)
+        return obj;
+
+    _indexMap.erase(it);
+    return {};
 }
 
 std::size_t SceneModel::idFromObject(project::object_ptr obj) const

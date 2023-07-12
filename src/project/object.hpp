@@ -1,61 +1,68 @@
 #pragma once
 
-#include <project/prototypes.hpp>
-
-#include <boost/signals2.hpp>
+#include "project/concepts.hpp"
+#include "project/resource.hpp"
 
 namespace g::project
 {
 
-class object : public std::enable_shared_from_this<object>
+class component;
+
+class object : public resource
 {
 protected:
     object();
 
 public:
-    static object_ptr create(std::string_view name,
-                             object_ptr parent = nullptr);
     virtual ~object();
 
-    std::string name();
+    static std::shared_ptr<object>
+    create(std::string_view name, std::shared_ptr<object> parent = nullptr);
 
-    void make_parent_of(object_ptr child);
-    object_ptr add_child(object_ptr child);
-    template <typename container_t>
-        requires std::same_as<typename container_t::element_type, object_ptr>
-    void add_children(container_t children)
+    std::string name();
+    std::list<common::uuid> const& children_uuid() const;
+
+    common::uuid parent_uuid() const;
+    std::shared_ptr<object> parent() const;
+
+    void add_child(std::shared_ptr<object> child);
+    void remove_child(std::shared_ptr<object> child);
+    void change_parent(std::shared_ptr<object> parent);
+
+    template <is_component T, typename... ARGS>
+    std::shared_ptr<component> add_component(ARGS&&... args)
     {
-        std::for_each(std::begin(children),
-                      std::end(children),
-                      [ this ](object_ptr child)
-                      { add_child(child); });
+        auto component =
+            std::make_shared<T>(std::forward(args)..., shared_from_this());
+        add_component(component);
+        return component;
+    }
+    std::shared_ptr<component> get_component(std::string_view classname);
+
+    template <is_component T>
+    std::shared_ptr<T> get_component()
+    {
+        return std::dynamic_pointer_cast<T>(get_component(T::type()));
     }
 
-    void make_child_of(object_ptr parent);
+private:
+    void add_component(std::shared_ptr<component> component);
 
-    std::list<object_ptr> const& children() const;
-    void move(object_ptr parent);
-    void remove_child(object_ptr child);
+    void add_child_uuid(common::uuid child_uuid);
+    void remove_child_uuid(common::uuid child_uuid);
+    void change_parent_uuid(common::uuid parent_uuid);
 
-    object_ptr parent() const;
-
-    object_cptr get_ptr() const;
-    object_ptr get_ptr();
-
-#pragma region signals
-public:
-    boost::signals2::signal<void(object_ptr)> on_parent_changed;
-    boost::signals2::signal<void(object_ptr, object_ptr)> on_before_child_added;
-    boost::signals2::signal<void(object_ptr, object_ptr)> on_before_child_removed;
-    boost::signals2::signal<void(object_ptr, object_ptr)> on_child_added;
-    boost::signals2::signal<void(object_ptr, object_ptr)> on_child_removed;
-    boost::signals2::signal<void()> on_children_list_changed;
-#pragma endregion
-
-protected:
-    object_wptr _parent;
+private:
     std::string _name;
-    std::list<object_ptr> _children;
+    common::uuid _parent_uuid;
+    std::list<common::uuid> _children_uuid;
+    std::list<common::uuid> _components_uuid;
+};
+
+template <>
+struct resource_type_traits<object>
+{
+    static constexpr resource_type type = resource_type::object;
 };
 
 } // namespace g::project

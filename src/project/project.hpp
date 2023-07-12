@@ -17,6 +17,7 @@ public:
     void set_name(std::string_view name);
     void set_active_scene(scene_ptr scene);
 
+    scene_ptr active_scene() const;
     std::list<scene_ptr> const& scenes() const;
 
 #pragma region signals
