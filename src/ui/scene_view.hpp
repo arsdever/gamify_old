@@ -1,6 +1,11 @@
 #pragma once
 
-#include <project/prototypes.hpp>
+#include <QTreeView>
+
+namespace g::project
+{
+class scene;
+}
 
 namespace g::ui
 {
@@ -10,12 +15,12 @@ class SceneView : public QTreeView
     Q_OBJECT
 
 public:
-    SceneView(project::scene_ptr scene, QWidget* parent = nullptr);
+    SceneView(std::shared_ptr<project::scene> scene, QWidget* parent = nullptr);
 
     void onContextMenu(const QPoint& pos);
 
 private:
-    project::scene_ptr _scene;
+    std::shared_ptr<project::scene> _scene;
 };
 
 } // namespace g::ui

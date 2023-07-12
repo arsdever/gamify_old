@@ -20,7 +20,7 @@ project::project(std::string_view name)
     logger->trace("Project created: {}", name);
 }
 
-void project::add_scene(scene_ptr scene)
+void project::add_scene(std::shared_ptr<scene> scene)
 {
     _scenes.push_back(scene);
     logger->trace("Scene added: {}", scene->name());
@@ -34,15 +34,18 @@ void project::set_name(std::string_view name)
     on_name_changed(name);
 }
 
-void project::set_active_scene(scene_ptr scene)
+void project::set_active_scene(std::shared_ptr<scene> scene)
 {
     _active_scene = scene;
     logger->trace("Active scene changed: {}", scene->name());
     on_active_scene_changed(scene);
 }
 
-scene_ptr project::active_scene() const { return _active_scene; }
+std::shared_ptr<scene> project::active_scene() const { return _active_scene; }
 
-std::list<scene_ptr> const& project::scenes() const { return _scenes; }
+std::list<std::shared_ptr<scene>> const& project::scenes() const
+{
+    return _scenes;
+}
 
 } // namespace g::project

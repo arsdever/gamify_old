@@ -10,7 +10,7 @@
 namespace g::ui
 {
 
-SceneModel::SceneModel(project::scene_ptr scene, QObject* parent)
+SceneModel::SceneModel(std::shared_ptr<project::scene> scene, QObject* parent)
     : QAbstractItemModel(parent)
     , _scene(std::move(scene))
 {
@@ -66,7 +66,8 @@ SceneModel::index(int row, int column, const QModelIndex& parent) const
             project::resource_manager::get_resource_static<project::object>(
                 *it);
         std::size_t id = idFromObject(rootObject);
-        _indexMap[ id ] = std::make_pair(rootObject, createIndex(row, column, id));
+        _indexMap[ id ] =
+            std::make_pair(rootObject, createIndex(row, column, id));
         return _indexMap[ id ].second;
     }
 
@@ -111,7 +112,8 @@ int SceneModel::rowCount(const QModelIndex& parent) const
     return 0;
 }
 
-void SceneModel::addChild(project::object_ptr parent, std::string_view name)
+void SceneModel::addChild(std::shared_ptr<project::object> parent,
+                          std::string_view name)
 {
     if (parent)
     {
@@ -128,9 +130,9 @@ void SceneModel::addChild(project::object_ptr parent, std::string_view name)
     }
 }
 
-void SceneModel::removeObject(project::object_ptr object)
+void SceneModel::removeObject(std::shared_ptr<project::object> object)
 {
-    project::object_ptr parent = object->parent();
+    std::shared_ptr<project::object> parent = object->parent();
     if (parent)
     {
         auto parentIndex = _indexMap[ idFromObject(parent) ].second;
@@ -150,7 +152,8 @@ void SceneModel::removeObject(project::object_ptr object)
     }
 }
 
-project::object_ptr SceneModel::objectAtIndex(const QModelIndex& index) const
+std::shared_ptr<project::object>
+SceneModel::objectAtIndex(const QModelIndex& index) const
 {
     if (!index.isValid())
     {
@@ -158,7 +161,7 @@ project::object_ptr SceneModel::objectAtIndex(const QModelIndex& index) const
     }
 
     auto it = _indexMap.find(index.internalId());
-    project::object_ptr obj = nullptr;
+    std::shared_ptr<project::object> obj = nullptr;
     if (it == _indexMap.end())
         return {};
 
@@ -171,7 +174,7 @@ project::object_ptr SceneModel::objectAtIndex(const QModelIndex& index) const
     return {};
 }
 
-std::size_t SceneModel::idFromObject(project::object_ptr obj) const
+std::size_t SceneModel::idFromObject(std::shared_ptr<project::object> obj) const
 {
     return reinterpret_cast<std::size_t>(obj.get());
 }

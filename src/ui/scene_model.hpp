@@ -1,8 +1,14 @@
 #pragma once
 
-#include <project/prototypes.hpp>
+#include <QAbstractItemModel>
 
-Q_DECLARE_METATYPE(g::project::object_ptr)
+namespace g::project
+{
+class object;
+class scene;
+} // namespace g::project
+
+Q_DECLARE_METATYPE(std::shared_ptr<g::project::object>)
 
 namespace g::ui
 {
@@ -18,7 +24,8 @@ public:
     };
 
 public:
-    SceneModel(project::scene_ptr scene, QObject* parent = nullptr);
+    SceneModel(std::shared_ptr<project::scene> scene,
+               QObject* parent = nullptr);
     ~SceneModel() override;
 
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -33,16 +40,21 @@ public:
     QModelIndex parent(const QModelIndex& index) const override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 
-    void addChild(project::object_ptr parent, std::string_view name);
-    void removeObject(project::object_ptr object);
+    void addChild(std::shared_ptr<project::object> parent,
+                  std::string_view name);
+    void removeObject(std::shared_ptr<project::object> object);
 
 private:
-    project::object_ptr objectAtIndex(const QModelIndex& index) const;
-    std::size_t idFromObject(project::object_ptr obj) const;
+    std::shared_ptr<project::object>
+    objectAtIndex(const QModelIndex& index) const;
+    std::size_t idFromObject(std::shared_ptr<project::object> obj) const;
 
 private:
-    mutable std::unordered_map<std::size_t, std::pair<project::object_wptr, QModelIndex>> _indexMap;
-    project::scene_ptr _scene;
+    mutable std::unordered_map<
+        std::size_t,
+        std::pair<std::weak_ptr<project::object>, QModelIndex>>
+        _indexMap;
+    std::shared_ptr<project::scene> _scene;
 };
 
 } // namespace g::ui

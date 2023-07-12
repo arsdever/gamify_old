@@ -13,7 +13,7 @@ namespace g::ui
 // TODO: Improve counting of the unnamed objects
 static int object_index = 0;
 
-SceneView::SceneView(project::scene_ptr scene, QWidget* parent)
+SceneView::SceneView(std::shared_ptr<project::scene> scene, QWidget* parent)
     : QTreeView { parent }
     , _scene { scene }
 {
@@ -38,7 +38,7 @@ void SceneView::onContextMenu(const QPoint& pos)
 
         auto object = model()
                           ->data(index, SceneModel::ObjectRole)
-                          .value<project::object_ptr>();
+                          .value<std::shared_ptr<project::object>>();
         if (object)
         {
             connect(newObject,

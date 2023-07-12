@@ -5,7 +5,6 @@ set(HEADERS
     component.hpp
     object.hpp
     project.hpp
-    prototypes.hpp
     renderer_component.hpp
     resource.hpp
     resource_manager.hpp

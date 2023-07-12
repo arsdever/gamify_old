@@ -1,8 +1,12 @@
 #pragma once
 
-#include <project/prototypes.hpp>
-
 class QPlainTextEdit;
+
+namespace g::project
+{
+class project;
+class scene;
+} // namespace g::project
 
 namespace g::ui
 {
@@ -24,8 +28,8 @@ private:
     void initializeLoggerDockWidget();
 
 private:
-    project::project_ptr _project;
-    project::scene_ptr _scene;
+    std::shared_ptr<project::project> _project;
+    std::shared_ptr<project::scene> _scene;
     ui::AssetManager* _assetManager;
 
     QWidget* _sceneWidget;
