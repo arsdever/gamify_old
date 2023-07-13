@@ -103,7 +103,10 @@
 		"xtree": "cpp",
 		"xutility": "cpp",
 		"qopenglwidget": "cpp",
-		"qopenglversionfunctionsfactory": "cpp"
+		"qopenglversionfunctionsfactory": "cpp",
+		"random": "cpp",
+		"ranges": "cpp",
+		"span": "cpp"
 	},
 	"sonarlint.pathToCompileCommands": "${workspaceFolder}\\build\\compile_commands.json"
 }

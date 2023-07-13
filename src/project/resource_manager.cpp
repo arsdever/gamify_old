@@ -18,13 +18,20 @@ resource_manager::resource_manager() = default;
 
 resource_manager::~resource_manager() = default;
 
-std::shared_ptr<resource_manager> resource_manager::init()
+std::shared_ptr<resource_manager> resource_manager::init(std::shared_ptr<resource_manager> instance)
 {
     profile(__FUNCTION__);
     if (_instance)
     {
         p_logger->warn("resource_manager already initialized.");
         return _instance;
+    }
+
+    if (instance)
+    {
+        p_logger->trace("Initializing resource_manager with existing instance.");
+        _instance = instance;
+        return instance;
     }
 
     _instance = std::shared_ptr<resource_manager>(new resource_manager());

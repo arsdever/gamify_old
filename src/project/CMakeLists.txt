@@ -3,6 +3,8 @@ find_package(assimp REQUIRED)
 
 set(HEADERS
     component.hpp
+    material.hpp
+    mesh_component.hpp
     object.hpp
     project.hpp
     renderer_component.hpp
@@ -11,6 +13,8 @@ set(HEADERS
     scene.hpp)
 set(SOURCES
     component.cpp
+    material.cpp
+    mesh_component.cpp
     object.cpp
     project.cpp
     renderer_component.cpp

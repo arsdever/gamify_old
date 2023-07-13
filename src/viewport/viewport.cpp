@@ -1,3 +1,4 @@
+#include <QLibrary>
 #include <QOpenGLFunctions>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLVersionFunctionsFactory>
@@ -6,6 +7,11 @@
 #include "viewport/viewport.hpp"
 
 #include "common/logger.hpp"
+#include "common/profiler.hpp"
+#include "project/renderer_component.hpp"
+#include "project/resource_manager.hpp"
+#include "project/scene.hpp"
+#include "rendering/renderer.hpp"
 
 namespace g::viewport
 {
@@ -17,93 +23,78 @@ common::logger_ptr logger = common::get_logger("viewport");
 
 Viewport::Viewport(QWidget* parent)
     : QOpenGLWidget(parent)
+    , _renderer_lib(nullptr)
+    , _renderer(nullptr, nullptr)
 {
+    _renderer->setResourceManager(project::resource_manager::get());
 }
 
 Viewport::~Viewport() = default;
 
-void Viewport::updateVertexShader(std::string_view source)
+void Viewport::onInitialized(std::function<void()> onInitialized)
 {
-    _vertexShaderSource = source;
-    updateShader(source, _vertexShader, GL_VERTEX_SHADER);
+    _onInitialized = std::move(onInitialized);
 }
 
-void Viewport::updateFragmentShader(std::string_view source)
+void Viewport::draw(
+    std::shared_ptr<project::renderer_component> rendererComponent)
 {
-    _fragmentShaderSource = source;
-    updateShader(source, _fragmentShader, GL_FRAGMENT_SHADER);
+    _renderer->render(rendererComponent);
 }
 
-void Viewport::updateShaderProgram()
+void Viewport::loadScene(std::shared_ptr<project::scene> scene)
 {
-    auto* f = checkAndGetGLFunctions();
-
-    if (_shaderProgram)
+    _scene = scene;
+    for (auto& root_object_uuid : scene->objects())
     {
-        f->glDeleteProgram(_shaderProgram);
+        auto root_object =
+            project::resource_manager::get_resource_static<project::object>(
+                root_object_uuid);
+        for (auto& object_uuid : root_object->children_uuid())
+        {
+            auto object =
+                project::resource_manager::get_resource_static<project::object>(
+                    object_uuid);
+            auto rendererComponent =
+                object->get_component<project::renderer_component>();
+            if (rendererComponent)
+            {
+                _renderer->load_object(rendererComponent);
+            }
+        }
+        auto rendererComponent =
+            root_object->get_component<project::renderer_component>();
+        if (rendererComponent)
+        {
+            _renderer->load_object(rendererComponent);
+        }
     }
-
-    _shaderProgram = f->glCreateProgram();
-
-    unsigned int success;
-    f->glAttachShader(_shaderProgram, _vertexShader);
-
-    success = f->glGetError();
-    if (success)
-    {
-        logger->error("Failed to attach vertex shader. Error code {}", success);
-        return;
-    }
-
-    f->glAttachShader(_shaderProgram, _fragmentShader);
-
-    success = f->glGetError();
-    if (success)
-    {
-        logger->error("Failed to attach fragment shader. Error code {}",
-                      success);
-        return;
-    }
-
-    f->glLinkProgram(_shaderProgram);
-
-    f->glGetProgramiv(_shaderProgram, GL_LINK_STATUS, (int*)&success);
-    if (!success)
-    {
-        std::string infoLog;
-        infoLog.resize(512);
-        f->glGetProgramInfoLog(_shaderProgram, 512, nullptr, infoLog.data());
-        logger->error(
-            "Failed to link shader program. Error code {}. Info log: {}",
-            success,
-            infoLog);
-        return;
-    }
-
-    f->glValidateProgram(_shaderProgram);
-    update();
 }
 
 void Viewport::initializeGL()
 {
-    float points[] = {
-        -0.5f, -0.5f, 0.0f, // left
-        0.5f,  -0.5f, 0.0f, // right
-        0.0f,  0.5f,  0.0f  // top
-    };
-
     auto* f = checkAndGetGLFunctions();
     f->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    _renderer_lib = new QLibrary("g_rendering.dll");
+    if (!_renderer_lib->load())
+    {
+        logger->error("Failed to load renderer library");
+        return;
+    }
 
-    f->glGenBuffers(1, &VBO);
-    f->glGenVertexArrays(1, &VAO);
+    auto* create_renderer = reinterpret_cast<rendering::renderer* (*)()>(
+        _renderer_lib->resolve("create_renderer"));
+    auto* destroy_renderer = reinterpret_cast<void (*)(rendering::renderer*)>(
+        _renderer_lib->resolve("destroy_renderer"));
+    _renderer =
+        std::unique_ptr<rendering::renderer, void (*)(rendering::renderer*)>(
+            create_renderer(), destroy_renderer);
+    _renderer->initialize(context());
 
-    f->glBindVertexArray(VAO);
-    f->glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    f->glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
-    f->glVertexAttribPointer(
-        0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-    f->glEnableVertexAttribArray(0);
+    if (_onInitialized)
+    {
+        _onInitialized();
+    }
 }
 
 void Viewport::resizeGL(int w, int h)
@@ -114,11 +105,35 @@ void Viewport::resizeGL(int w, int h)
 
 void Viewport::paintGL()
 {
+    common::profile_frame(__FUNCTION__);
     auto* f = checkAndGetGLFunctions();
     f->glClear(GL_COLOR_BUFFER_BIT);
-    f->glUseProgram(_shaderProgram);
-    f->glBindVertexArray(VAO);
-    f->glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    for (auto& root_object_uuid : _scene->objects())
+    {
+        auto root_object =
+            project::resource_manager::get_resource_static<project::object>(
+                root_object_uuid);
+        for (auto& object_uuid : root_object->children_uuid())
+        {
+            auto object =
+                project::resource_manager::get_resource_static<project::object>(
+                    object_uuid);
+            auto rendererComponent =
+                object->get_component<project::renderer_component>();
+            if (rendererComponent)
+            {
+                _renderer->render(rendererComponent);
+            }
+        }
+        auto rendererComponent =
+            root_object->get_component<project::renderer_component>();
+        if (rendererComponent)
+        {
+            _renderer->render(rendererComponent);
+        }
+    }
+
     logger->debug("Viewport painted");
 }
 

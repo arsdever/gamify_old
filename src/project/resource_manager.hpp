@@ -19,7 +19,8 @@ protected:
 public:
     ~resource_manager();
 
-    static std::shared_ptr<resource_manager> init();
+    static std::shared_ptr<resource_manager>
+    init(std::shared_ptr<resource_manager> instance = nullptr);
     static std::shared_ptr<resource_manager> get();
     static void deinit();
 

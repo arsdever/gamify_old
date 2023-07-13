@@ -9,6 +9,12 @@ namespace g::project
 {
 
 class object;
+class material;
+
+struct render_context
+{
+    virtual ~render_context() = 0;
+};
 
 class renderer_component : public component
 {
@@ -20,18 +26,17 @@ public:
 
     static std::shared_ptr<renderer_component>
     create(std::shared_ptr<class object> object);
+    static std::string type();
 
-    // TODO: replace with mesh
-    std::vector<std::array<float, 3>> const& vertex_coordinates() const;
-    std::vector<unsigned> const& vertex_indices() const;
+    material* material() const;
+    void setMaterial(std::unique_ptr<class material>&& material);
 
-    // TODO: replace with material and move shader_asset into material
-    unsigned int shader_asset();
+    render_context* renderContext() const;
+    void setRenderContext(std::unique_ptr<render_context>&& renderContext);
 
 private:
-    std::vector<std::array<float, 3>> _vertexCoordinates;
-    std::vector<unsigned> _vertexIndices;
-    unsigned int _shader { 0 };
+    std::unique_ptr<render_context> _renderContext { nullptr };
+    std::unique_ptr<class material> _material { nullptr };
 };
 
 } // namespace g::project

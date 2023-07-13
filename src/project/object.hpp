@@ -30,10 +30,11 @@ public:
     void change_parent(std::shared_ptr<object> parent);
 
     template <is_component T, typename... ARGS>
-    std::shared_ptr<component> add_component(ARGS&&... args)
+    std::shared_ptr<T> add_component(ARGS&&... args)
     {
         auto component =
-            std::make_shared<T>(std::forward(args)..., shared_from_this());
+            T::create(std::forward(args)...,
+                      std::static_pointer_cast<object>(shared_from_this()));
         add_component(component);
         return component;
     }

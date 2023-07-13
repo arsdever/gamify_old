@@ -8,8 +8,10 @@
 
 #include "ui/main_window.hpp"
 
+#include "project/mesh_component.hpp"
 #include "project/object.hpp"
 #include "project/project.hpp"
+#include "project/renderer_component.hpp"
 #include "project/resource_manager.hpp"
 #include "project/scene.hpp"
 #include "qspdlog/qspdlog.hpp"
@@ -27,12 +29,13 @@ MainWindow::MainWindow(QWidget* parent)
     , _project { std::make_shared<project::project>("Dummy project") }
     , _scene { project::scene::create("Dummy scene") }
     , _assetManager { new ui::AssetManager }
-    , _viewport { new viewport::Viewport }
+    , _viewport { nullptr }
     , _shaderEditor { new QTabWidget }
     , _vertexShaderEditor { new QPlainTextEdit }
     , _fragmentShaderEditor { new QPlainTextEdit }
 {
     project::resource_manager::init();
+    _viewport = new viewport::Viewport;
     initializeDockWidgets();
 
     _project->add_scene(_scene);
@@ -40,70 +43,39 @@ MainWindow::MainWindow(QWidget* parent)
 
     auto rootObject = project::object::create("Dummy object");
     _scene->add_object(rootObject);
-    project::object::create("Dummy child", rootObject);
 
-    rootObject = project::object::create("Dummy object 2");
-    _scene->add_object(rootObject);
-    project::object::create("Dummy child 2", rootObject);
+    // create a cube
+    auto meshComponent = rootObject->add_component<project::mesh_component>();
+    std::vector<std::array<float, 3>> vertexCoordinates {
+        { -0.1f, -0.1f, -0.1f }, // 0
+        { 0.1f, -0.1f, -0.1f },  // 1
+        { 0.1f, 0.1f, -0.1f },   // 2
+        { -0.1f, 0.1f, -0.1f },  // 3
+        { -0.1f, -0.1f, 0.1f },  // 4
+        { 0.1f, -0.1f, 0.1f },   // 5
+        { 0.1f, 0.1f, 0.1f },    // 6
+        { -0.1f, 0.1f, 0.1f }    // 7
+    };
+    std::vector<unsigned> vertexIndices {
+        0, 1, 2, 2, 3, 0, // front
+        1, 5, 6, 6, 2, 1, // right
+        5, 4, 7, 7, 6, 5, // back
+        4, 0, 3, 3, 7, 4, // left
+        3, 2, 6, 6, 7, 3, // top
+        4, 5, 1, 1, 0, 4  // bottom
+    };
+    meshComponent->set_vertex_coordinates(vertexCoordinates);
+    meshComponent->set_vertex_indices(vertexIndices);
 
-    rootObject = project::object::create("Dummy object 3");
-    _scene->add_object(rootObject);
-    auto childObject = project::object::create("Dummy child 3", rootObject);
-    project::object::create("Dummy child 3.1", childObject);
+    rootObject->add_component<project::renderer_component>();
 
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");
     sceneMenu->addActions(_sceneWidget->actions());
 
-    QTabWidget* shaderEditorCasted = qobject_cast<QTabWidget*>(_shaderEditor);
-    shaderEditorCasted->addTab(_vertexShaderEditor, "Vertex shader");
-    shaderEditorCasted->addTab(_fragmentShaderEditor, "Fragment shader");
-
-    QToolBar* toolbar = addToolBar("Shader editor");
-    QToolButton* compileButton = new QToolButton;
-    compileButton->setText("Compile");
-    toolbar->addWidget(compileButton);
-
-    compileButton->connect(compileButton,
-                           &QToolButton::clicked,
-                           [ this ]
-                           {
-        viewport::Viewport* viewport =
-            qobject_cast<viewport::Viewport*>(_viewport);
-        viewport->updateVertexShader(
-            _vertexShaderEditor->toPlainText().toStdString());
-        viewport->updateFragmentShader(
-            _fragmentShaderEditor->toPlainText().toStdString());
-        viewport->updateShaderProgram();
-    });
-
-    QDockWidget* shaderEditorDockWidget =
-        new QDockWidget("Shader editor", this);
-    shaderEditorDockWidget->setWidget(_shaderEditor);
-    addDockWidget(Qt::RightDockWidgetArea, shaderEditorDockWidget);
-
-    QDockWidget* assetsDockWidget = new QDockWidget("Assets", this);
-    QListView* assetsListView = new QListView;
-    assetsDockWidget->setWidget(assetsListView);
-    assetsListView->setModel(_assetManager);
-    assetsListView->setViewMode(QListView::IconMode);
-    assetsListView->setUniformItemSizes(true);
-    addDockWidget(Qt::BottomDockWidgetArea, assetsDockWidget);
-
-    QToolButton* addAssetButton = new QToolButton;
-    addAssetButton->setText("Add asset");
-    toolbar->addWidget(addAssetButton);
-    connect(addAssetButton,
-            &QToolButton::clicked,
-            [ this ]
-            {
-        QString file_path = QFileDialog::getOpenFileName(
-            this, "Open asset", "", "All files (*.*)");
-        if (!file_path.isEmpty())
-        {
-            _assetManager->loadAsset(file_path.toStdString());
-        }
-    });
+    qobject_cast<viewport::Viewport*>(_viewport)->onInitialized(
+        [ this ]()
+        { qobject_cast<viewport::Viewport*>(_viewport)->loadScene(_scene); });
 }
 
 MainWindow::~MainWindow() { project::resource_manager::deinit(); }
