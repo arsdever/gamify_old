@@ -23,9 +23,6 @@ public:
     QVariant data(const QModelIndex& index,
                   int role = Qt::DisplayRole) const override;
 #pragma endregion
-
-private:
-    std::vector<std::unique_ptr<Asset>> _assets;
 };
 
 } // namespace g::ui

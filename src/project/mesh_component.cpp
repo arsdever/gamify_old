@@ -6,7 +6,7 @@ namespace g::project
 {
 
 mesh_component::mesh_component(std::shared_ptr<class object> parent)
-    : component("mesh", parent)
+    : component(type(), parent)
 {
 }
 

@@ -2,6 +2,8 @@ find_package(Boost REQUIRED)
 find_package(assimp REQUIRED)
 
 set(HEADERS
+    asset.hpp
+    asset_manager.hpp
     component.hpp
     material.hpp
     mesh_component.hpp
@@ -10,8 +12,11 @@ set(HEADERS
     renderer_component.hpp
     resource.hpp
     resource_manager.hpp
-    scene.hpp)
+    scene.hpp
+    assets/mesh_asset.hpp)
 set(SOURCES
+    asset.cpp
+    asset_manager.cpp
     component.cpp
     material.cpp
     mesh_component.cpp
@@ -20,7 +25,8 @@ set(SOURCES
     renderer_component.cpp
     resource.cpp
     resource_manager.cpp
-    scene.cpp)
+    scene.cpp
+    assets/mesh_asset.cpp)
 
 add_library(g_project STATIC ${SOURCES} ${HEADERS})
 add_library(g::project ALIAS g_project)

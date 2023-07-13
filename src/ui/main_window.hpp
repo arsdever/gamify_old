@@ -30,7 +30,7 @@ private:
 private:
     std::shared_ptr<project::project> _project;
     std::shared_ptr<project::scene> _scene;
-    ui::AssetManager* _assetManager;
+    // ui::AssetManager* _assetManager;
 
     QWidget* _sceneWidget;
     QWidget* _viewport;

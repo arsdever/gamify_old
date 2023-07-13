@@ -8,6 +8,7 @@
 
 #include "ui/main_window.hpp"
 
+#include "project/assets/mesh_asset.hpp"
 #include "project/mesh_component.hpp"
 #include "project/object.hpp"
 #include "project/project.hpp"
@@ -15,7 +16,9 @@
 #include "project/resource_manager.hpp"
 #include "project/scene.hpp"
 #include "qspdlog/qspdlog.hpp"
-#include "ui/asset_manager.hpp"
+// #include "ui/asset_manager.hpp"
+#include "project/asset.hpp"
+#include "project/asset_manager.hpp"
 #include "ui/scene_view.hpp"
 #include "viewport/viewport.hpp"
 #include <spdlog/sinks/sink.h>
@@ -28,7 +31,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow { parent }
     , _project { std::make_shared<project::project>("Dummy project") }
     , _scene { project::scene::create("Dummy scene") }
-    , _assetManager { new ui::AssetManager }
+    // , _assetManager { new ui::AssetManager }
     , _viewport { nullptr }
     , _shaderEditor { new QTabWidget }
     , _vertexShaderEditor { new QPlainTextEdit }
@@ -67,7 +70,12 @@ MainWindow::MainWindow(QWidget* parent)
     meshComponent->set_vertex_coordinates(vertexCoordinates);
     meshComponent->set_vertex_indices(vertexIndices);
 
-    rootObject->add_component<project::renderer_component>();
+    auto rendererComponent =
+        rootObject->add_component<project::renderer_component>();
+
+    auto asset = project::asset_manager().load_asset("sample.fbx");
+    rendererComponent->set_mesh(
+        std::static_pointer_cast<project::assets::mesh>(asset));
 
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");

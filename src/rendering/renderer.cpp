@@ -5,6 +5,7 @@
 #include "renderer.hpp"
 
 #include "common/logger.hpp"
+#include "project/assets/mesh_asset.hpp"
 #include "project/material.hpp"
 #include "project/mesh_component.hpp"
 #include "project/object.hpp"
@@ -87,7 +88,7 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
     if (renderer->enabled())
     {
         auto render_context =
-            static_cast<opengl_3_3_render_context*>(renderer->renderContext());
+            static_cast<opengl_3_3_render_context*>(renderer->render_context());
         if (!render_context)
         {
             logger->error("Render context is null");
@@ -109,40 +110,62 @@ void renderer::load_object(
     auto* f = checkAndGetGLFunctions();
     auto* context = new opengl_3_3_render_context();
 
-    auto mesh = renderer->get_component<project::mesh_component>();
+    auto mesh = renderer->mesh();
 
-    context->vertex_count = mesh->vertex_coordinates().size();
-    context->index_count = mesh->vertex_indices().size();
+    if (mesh)
+    {
+        context->vertex_count = mesh->vertices().size();
+        context->index_count = mesh->indices().size();
 
-    f->glGenVertexArrays(1, &context->vao);
-    f->glGenBuffers(1, &context->vbo);
-    f->glGenBuffers(1, &context->ebo);
+        f->glGenVertexArrays(1, &context->vao);
+        f->glGenBuffers(1, &context->vbo);
+        f->glGenBuffers(1, &context->ebo);
 
-    f->glBindVertexArray(context->vao);
-    f->glBindBuffer(GL_ARRAY_BUFFER, context->vbo);
-    f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, context->ebo);
+        f->glBindVertexArray(context->vao);
+        f->glBindBuffer(GL_ARRAY_BUFFER, context->vbo);
+        f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, context->ebo);
 
-    f->glBufferData(GL_ARRAY_BUFFER,
-                    mesh->vertex_coordinates().size() * sizeof(float) * 3,
-                    mesh->vertex_coordinates().data(),
-                    GL_STATIC_DRAW);
-    f->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                    mesh->vertex_indices().size() * sizeof(unsigned),
-                    mesh->vertex_indices().data(),
-                    GL_STATIC_DRAW);
+        f->glBufferData(GL_ARRAY_BUFFER,
+                        mesh->vertices().size() * sizeof(float) *
+                            sizeof(project::assets::mesh::vertex_t),
+                        mesh->vertices().data(),
+                        GL_STATIC_DRAW);
+        f->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                        mesh->indices().size() * sizeof(unsigned),
+                        mesh->indices().data(),
+                        GL_STATIC_DRAW);
 
-    f->glVertexAttribPointer(
-        0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
-    f->glEnableVertexAttribArray(0);
-    f->glBindVertexArray(0);
-
-    context->program = f->glCreateProgram();
-    context->vshader = f->glCreateShader(GL_VERTEX_SHADER);
-    context->fshader = f->glCreateShader(GL_FRAGMENT_SHADER);
+        f->glVertexAttribPointer(0,
+                                 3,
+                                 GL_FLOAT,
+                                 GL_FALSE,
+                                 sizeof(float) * 8,
+                                 (void*)(sizeof(float) * 0));
+        f->glVertexAttribPointer(1,
+                                 3,
+                                 GL_FLOAT,
+                                 GL_FALSE,
+                                 sizeof(float) * 8,
+                                 (void*)(sizeof(float) * 3));
+        f->glVertexAttribPointer(2,
+                                 2,
+                                 GL_FLOAT,
+                                 GL_FALSE,
+                                 sizeof(float) * 8,
+                                 (void*)(sizeof(float) * 6));
+        f->glEnableVertexAttribArray(0);
+        f->glEnableVertexAttribArray(1);
+        f->glEnableVertexAttribArray(2);
+        f->glBindVertexArray(0);
+    }
 
     auto* material = renderer->material();
     if (material)
     {
+        context->program = f->glCreateProgram();
+        context->vshader = f->glCreateShader(GL_VERTEX_SHADER);
+        context->fshader = f->glCreateShader(GL_FRAGMENT_SHADER);
+
         std::string vshader_source = material->vertex_shader_source();
         std::string fshader_source = material->fragment_shader_source();
 
@@ -161,7 +184,7 @@ void renderer::load_object(
         f->glLinkProgram(context->program);
     }
 
-    renderer->setRenderContext(
+    renderer->set_render_context(
         std::unique_ptr<project::render_context>(context));
 }
 
