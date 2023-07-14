@@ -24,6 +24,20 @@ SceneView::SceneView(std::shared_ptr<project::scene> scene, QWidget* parent)
             &QWidget::customContextMenuRequested,
             this,
             &SceneView::onContextMenu);
+
+    connect(this,
+            &QTreeView::activated,
+            this,
+            [ this ](const QModelIndex& index)
+            {
+        auto object = model()
+                          ->data(index, SceneModel::ObjectRole)
+                          .value<std::shared_ptr<project::object>>();
+        if (object)
+        {
+            emit objectActivated(object);
+        }
+    });
 }
 
 void SceneView::onContextMenu(const QPoint& pos)

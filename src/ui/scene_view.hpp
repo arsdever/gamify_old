@@ -5,6 +5,7 @@
 namespace g::project
 {
 class scene;
+class object;
 }
 
 namespace g::ui
@@ -18,6 +19,9 @@ public:
     SceneView(std::shared_ptr<project::scene> scene, QWidget* parent = nullptr);
 
     void onContextMenu(const QPoint& pos);
+
+signals:
+    void objectActivated(std::shared_ptr<project::object> object);
 
 private:
     std::shared_ptr<project::scene> _scene;

@@ -2,6 +2,7 @@
 
 #include "common/logger.hpp"
 #include "project/component.hpp"
+#include "project/transform_component.hpp"
 #include "resource_manager.hpp"
 
 namespace g::project
@@ -34,6 +35,9 @@ std::shared_ptr<object> object::create(std::string_view name,
     }
 
     resource_manager::get()->register_resource(object_);
+
+    object_->_transform = transform_component::create(object_);
+
     return object_;
 }
 
@@ -76,18 +80,16 @@ void object::add_child_uuid(common::uuid child_uuid)
 {
     logger->trace("Adding child {} to {}", child_uuid, name());
     _children_uuid.push_back(child_uuid);
-    resource_manager::get()
-        ->get_resource<object>(child_uuid)
-        ->_parent_uuid = uuid();
+    resource_manager::get()->get_resource<object>(child_uuid)->_parent_uuid =
+        uuid();
 }
 
 void object::remove_child_uuid(common::uuid child_uuid)
 {
     logger->trace("Removing child {} from {}", child_uuid, name());
     _children_uuid.remove(child_uuid);
-    resource_manager::get()
-        ->get_resource<object>(child_uuid)
-        ->_parent_uuid = common::uuid {};
+    resource_manager::get()->get_resource<object>(child_uuid)->_parent_uuid =
+        common::uuid {};
 }
 
 void object::change_parent_uuid(common::uuid parent_uuid)
@@ -102,6 +104,11 @@ void object::change_parent_uuid(common::uuid parent_uuid)
         resource_manager::get()
             ->get_resource<object>(parent_uuid)
             ->_children_uuid.push_back(uuid());
+}
+
+std::shared_ptr<transform_component> object::transform() const
+{
+    return _transform;
 }
 
 void object::add_component(std::shared_ptr<component> component_)

@@ -1,8 +1,7 @@
 #include "project/renderer_component.hpp"
 
+#include "project/assets/material_asset.hpp"
 #include "project/assets/mesh_asset.hpp"
-#include "project/material.hpp"
-#include "project/mesh_component.hpp"
 #include "project/resource_manager.hpp"
 
 namespace g::project
@@ -45,12 +44,22 @@ void renderer_component::set_mesh(std::shared_ptr<assets::mesh> mesh)
     _mesh_uuid = {};
 }
 
-material* renderer_component::material() const { return _material.get(); }
+std::shared_ptr<assets::material> renderer_component::material() const
+{
+    return std::static_pointer_cast<assets::material>(
+        resource_manager::get()->get_resource<asset>(_material_uuid));
+}
 
 void renderer_component::set_material(
-    std::unique_ptr<class material>&& material)
+    std::shared_ptr<assets::material> material)
 {
-    _material = std::move(material);
+    if (material)
+    {
+        _material_uuid = material->uuid();
+        return;
+    }
+
+    _material_uuid = {};
 }
 
 render_context* renderer_component::render_context() const

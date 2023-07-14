@@ -18,19 +18,13 @@ asset_manager::~asset_manager() = default;
 std::shared_ptr<asset> asset_manager::load_asset(std::string_view file_path)
 {
     auto importer = Assimp::Importer();
-    const aiScene* scene = importer.ReadFile(
-        file_path.data(),
-        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
-            aiProcess_GenSmoothNormals);
+    const aiScene* scene = importer.ReadFile(file_path.data(), 0);
 
     if (!scene)
     {
         logger->error("Failed to load asset: {}", importer.GetErrorString());
         return nullptr;
     }
-
-    // auto extension = std::filesystem::path(file_path).extension().string();
-    // asset_type type = asset_type_from_string_view(extension.substr(1));
 
     for (int i = 0; i < scene->mNumMeshes; ++i)
     {

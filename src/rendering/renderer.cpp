@@ -1,3 +1,4 @@
+#include <QMatrix4x4>
 #include <QOpenGLFunctions>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLVersionFunctionsFactory>
@@ -5,9 +6,9 @@
 #include "renderer.hpp"
 
 #include "common/logger.hpp"
+#include "common/matrix.hpp"
+#include "project/assets/material_asset.hpp"
 #include "project/assets/mesh_asset.hpp"
-#include "project/material.hpp"
-#include "project/mesh_component.hpp"
 #include "project/object.hpp"
 #include "project/project.hpp"
 #include "project/renderer_component.hpp"
@@ -18,7 +19,60 @@
 namespace g::rendering
 {
 
+auto constexpr modelViewProjectionShaderSource = R"glsl(#version 330 core
+
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 normal;
+layout(location = 2) in vec2 uv;
+
+vec4 vert(vec3 position);
+
+uniform mat4 view;
+uniform mat4 projection;
+uniform mat4 model;
+
+out vec3 frag_normal;
+out vec2 frag_uv;
+
+void main()
+{
+    gl_Position = projection * view * model * vec4(position, 1.0f);//vert(position);
+    frag_normal = normal;
+    frag_uv = uv;
+})glsl";
+
+auto constexpr defaultFragmentShaderSource = R"glsl(#version 330 core
+
+in vec3 frag_normal;
+in vec2 frag_uv;
+
+out vec4 color;
+
+vec3 light_dir = vec3(0.0, 0.0, 1.0);
+vec3 light_color = vec3(0.8, 0.4, -.4);
+
+vec4 frag();
+
+void main()
+{
+    vec3 light_intensity = vec3(1.0, 1.0, 1.0);
+    vec3 lightness = light_intensity * max(dot(normalize(frag_normal), light_dir), 0.0);
+    vec3 diffuse = light_color * lightness;
+
+    color = vec4(diffuse, 1.0) * frag();
+})glsl";
+
 renderer::~renderer() = default;
+
+void renderer::set_projection_matrix(common::matrix4x4 projection_matrix)
+{
+    _projection_matrix = std::move(projection_matrix);
+}
+
+void renderer::set_view_matrix(common::matrix4x4 view_matrix)
+{
+    _view_matrix = std::move(view_matrix);
+}
 
 namespace
 {
@@ -60,7 +114,7 @@ public:
     renderer();
     ~renderer() override;
 
-    void initialize(QOpenGLContext* context) override;
+    void initialize() override;
     void render(std::shared_ptr<project::renderer_component> renderer) override;
     virtual void
     load_object(std::shared_ptr<project::renderer_component> renderer) override;
@@ -68,18 +122,50 @@ public:
 private:
     QOpenGLFunctions_3_3_Core* checkAndGetGLFunctions();
 
-private:
-    QOpenGLContext* _context { nullptr };
+    unsigned modelViewProjectionShader;
+    unsigned defaultFragmentShader;
+    unsigned default_vert;
+    unsigned default_frag;
 };
 
 renderer::renderer() = default;
 
 renderer::~renderer() = default;
 
-void renderer::initialize(QOpenGLContext* context)
+void renderer::initialize()
 {
     logger->debug("Initializing renderer");
-    _context = context;
+
+    auto* f = checkAndGetGLFunctions();
+
+    f->glEnable(GL_DEPTH_TEST);
+
+    modelViewProjectionShader = f->glCreateShader(GL_VERTEX_SHADER);
+    f->glShaderSource(modelViewProjectionShader,
+                      1,
+                      &modelViewProjectionShaderSource,
+                      nullptr);
+    f->glCompileShader(modelViewProjectionShader);
+
+    defaultFragmentShader = f->glCreateShader(GL_FRAGMENT_SHADER);
+    f->glShaderSource(
+        defaultFragmentShader, 1, &defaultFragmentShaderSource, nullptr);
+    f->glCompileShader(defaultFragmentShader);
+
+    default_vert = f->glCreateShader(GL_VERTEX_SHADER);
+    default_frag = f->glCreateShader(GL_FRAGMENT_SHADER);
+
+    auto constexpr default_vertex_shader_source =
+        "vec4 vert(vec3 pos) { return vec4(pos, 1.0); }";
+    auto constexpr default_fragment_shader_source =
+        "vec4 frag() { return vec4(1.0, 1.0, 1.0, 1.0); }";
+
+    f->glShaderSource(default_vert, 1, &default_vertex_shader_source, nullptr);
+    f->glShaderSource(
+        default_frag, 1, &default_fragment_shader_source, nullptr);
+
+    f->glCompileShader(default_vert);
+    f->glCompileShader(default_frag);
 }
 
 void renderer::render(std::shared_ptr<project::renderer_component> renderer)
@@ -96,6 +182,23 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
         }
 
         f->glUseProgram(render_context->program);
+
+        f->glUniformMatrix4fv(render_context->uniforms[ "view" ],
+                              1,
+                              GL_FALSE,
+                              _view_matrix.data.data());
+        f->glUniformMatrix4fv(render_context->uniforms[ "projection" ],
+                              1,
+                              GL_FALSE,
+                              _projection_matrix.data.data());
+
+        QMatrix4x4 model_matrix;
+        model_matrix.setToIdentity();
+        f->glUniformMatrix4fv(render_context->uniforms[ "model" ],
+                              1,
+                              GL_FALSE,
+                              model_matrix.data());
+
         f->glBindVertexArray(render_context->vao);
         f->glDrawElements(
             GL_TRIANGLES, render_context->index_count, GL_UNSIGNED_INT, 0);
@@ -126,7 +229,7 @@ void renderer::load_object(
         f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, context->ebo);
 
         f->glBufferData(GL_ARRAY_BUFFER,
-                        mesh->vertices().size() * sizeof(float) *
+                        mesh->vertices().size() *
                             sizeof(project::assets::mesh::vertex_t),
                         mesh->vertices().data(),
                         GL_STATIC_DRAW);
@@ -159,13 +262,16 @@ void renderer::load_object(
         f->glBindVertexArray(0);
     }
 
-    auto* material = renderer->material();
+    context->program = f->glCreateProgram();
+    context->vshader = f->glCreateShader(GL_VERTEX_SHADER);
+    context->fshader = f->glCreateShader(GL_FRAGMENT_SHADER);
+
+    std::string error_log;
+    error_log.resize(512);
+
+    auto material = renderer->material();
     if (material)
     {
-        context->program = f->glCreateProgram();
-        context->vshader = f->glCreateShader(GL_VERTEX_SHADER);
-        context->fshader = f->glCreateShader(GL_FRAGMENT_SHADER);
-
         std::string vshader_source = material->vertex_shader_source();
         std::string fshader_source = material->fragment_shader_source();
 
@@ -176,13 +282,37 @@ void renderer::load_object(
         f->glShaderSource(context->fshader, 1, &fsh, nullptr);
 
         f->glCompileShader(context->vshader);
+        f->glGetShaderInfoLog(
+            context->vshader, error_log.size(), nullptr, error_log.data());
+        logger->info("Vertex shader info log: {}", error_log);
+
         f->glCompileShader(context->fshader);
+        f->glGetShaderInfoLog(
+            context->fshader, error_log.size(), nullptr, error_log.data());
 
         f->glAttachShader(context->program, context->vshader);
         f->glAttachShader(context->program, context->fshader);
-
-        f->glLinkProgram(context->program);
     }
+    else
+    {
+        f->glAttachShader(context->program, default_vert);
+        f->glAttachShader(context->program, default_frag);
+    }
+
+    f->glAttachShader(context->program, modelViewProjectionShader);
+    f->glAttachShader(context->program, defaultFragmentShader);
+
+    f->glLinkProgram(context->program);
+    f->glGetProgramInfoLog(
+        context->program, error_log.size(), nullptr, error_log.data());
+    logger->info("Program info log: {}", error_log);
+
+    context->uniforms[ "view" ] =
+        f->glGetUniformLocation(context->program, "view");
+    context->uniforms[ "projection" ] =
+        f->glGetUniformLocation(context->program, "projection");
+    context->uniforms[ "model" ] =
+        f->glGetUniformLocation(context->program, "model");
 
     renderer->set_render_context(
         std::unique_ptr<project::render_context>(context));
@@ -351,7 +481,7 @@ QOpenGLFunctions_3_3_Core* renderer::checkAndGetGLFunctions()
     logger->debug("Trying to get OpenGL 3.3 functions");
     QOpenGLFunctions_3_3_Core* f =
         QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(
-            _context);
+            QOpenGLContext::currentContext());
     // if (f)
     // {
     //     logger->info("OpenGL 3.3 functions are available");

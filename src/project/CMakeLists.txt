@@ -4,29 +4,31 @@ find_package(assimp REQUIRED)
 set(HEADERS
     asset.hpp
     asset_manager.hpp
+    camera_component.hpp
     component.hpp
-    material.hpp
-    mesh_component.hpp
     object.hpp
     project.hpp
     renderer_component.hpp
     resource.hpp
     resource_manager.hpp
     scene.hpp
-    assets/mesh_asset.hpp)
+    transform_component.hpp
+    assets/mesh_asset.hpp
+    assets/material_asset.hpp)
 set(SOURCES
     asset.cpp
     asset_manager.cpp
+    camera_component.cpp
     component.cpp
-    material.cpp
-    mesh_component.cpp
     object.cpp
     project.cpp
     renderer_component.cpp
     resource.cpp
     resource_manager.cpp
     scene.cpp
-    assets/mesh_asset.cpp)
+    transform_component.cpp
+    assets/mesh_asset.cpp
+    assets/material_asset.cpp)
 
 add_library(g_project STATIC ${SOURCES} ${HEADERS})
 add_library(g::project ALIAS g_project)

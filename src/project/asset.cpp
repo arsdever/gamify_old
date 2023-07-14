@@ -59,4 +59,8 @@ std::string asset::name() const { return _name; }
 
 asset_type asset::asset_type() const { return _asset_type; }
 
+bool asset::modified() const { return _modified; }
+
+void asset::setModified(bool value) { _modified = value; }
+
 } // namespace g::project

@@ -73,6 +73,9 @@ void Viewport::loadScene(std::shared_ptr<project::scene> scene)
 
 void Viewport::initializeGL()
 {
+    common::profile(__FUNCTION__);
+    makeCurrent();
+
     auto* f = checkAndGetGLFunctions();
     f->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     _renderer_lib = new QLibrary("g_rendering.dll");
@@ -89,7 +92,7 @@ void Viewport::initializeGL()
     _renderer =
         std::unique_ptr<rendering::renderer, void (*)(rendering::renderer*)>(
             create_renderer(), destroy_renderer);
-    _renderer->initialize(context());
+    _renderer->initialize();
 
     if (_onInitialized)
     {
@@ -99,15 +102,21 @@ void Viewport::initializeGL()
 
 void Viewport::resizeGL(int w, int h)
 {
+    common::profile(__FUNCTION__);
+    makeCurrent();
     auto* f = checkAndGetGLFunctions();
     f->glViewport(0, 0, w, h);
 }
 
 void Viewport::paintGL()
 {
-    common::profile_frame(__FUNCTION__);
+    common::profile(__FUNCTION__);
+    makeCurrent();
     auto* f = checkAndGetGLFunctions();
     f->glClear(GL_COLOR_BUFFER_BIT);
+
+    _renderer->set_projection_matrix(_projection);
+    _renderer->set_view_matrix(_view);
 
     for (auto& root_object_uuid : _scene->objects())
     {
@@ -156,37 +165,6 @@ QOpenGLFunctions_3_3_Core* Viewport::checkAndGetGLFunctions()
         throw std::runtime_error("OpenGL functions are not available");
     }
     return f;
-}
-
-void Viewport::updateShader(std::string_view source,
-                            unsigned int& shader,
-                            unsigned int shaderType)
-{
-    auto* f = checkAndGetGLFunctions();
-
-    if (!shader)
-    {
-        shader = f->glCreateShader(shaderType);
-    }
-
-    const char* sourcePtr = source.data();
-    f->glShaderSource(shader, 1, &sourcePtr, nullptr);
-    f->glCompileShader(shader);
-
-    unsigned int success;
-    f->glGetShaderiv(shader, GL_COMPILE_STATUS, (int*)&success);
-    if (!success)
-    {
-        std::string infoLog;
-        infoLog.resize(512);
-        f->glGetShaderInfoLog(shader, 512, nullptr, infoLog.data());
-        logger->error(
-            "Failed to compile {} shader. Error code {}. Info log: {}",
-            shaderType == GL_VERTEX_SHADER ? "vertex" : "fragment",
-            success,
-            infoLog);
-        return;
-    }
 }
 
 } // namespace g::viewport

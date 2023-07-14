@@ -8,17 +8,21 @@
 
 #include "ui/main_window.hpp"
 
+#include "project/assets/material_asset.hpp"
 #include "project/assets/mesh_asset.hpp"
-#include "project/mesh_component.hpp"
 #include "project/object.hpp"
 #include "project/project.hpp"
 #include "project/renderer_component.hpp"
 #include "project/resource_manager.hpp"
 #include "project/scene.hpp"
+#include "project/transform_component.hpp"
 #include "qspdlog/qspdlog.hpp"
+#include "viewport/camera_view.hpp"
 // #include "ui/asset_manager.hpp"
+#include "common/logger.hpp"
 #include "project/asset.hpp"
 #include "project/asset_manager.hpp"
+#include "project/camera_component.hpp"
 #include "ui/scene_view.hpp"
 #include "viewport/viewport.hpp"
 #include <spdlog/sinks/sink.h>
@@ -26,6 +30,11 @@
 
 namespace g::ui
 {
+
+namespace
+{
+common::logger_ptr logger = common::get_logger("ui");
+}
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow { parent }
@@ -47,28 +56,11 @@ MainWindow::MainWindow(QWidget* parent)
     auto rootObject = project::object::create("Dummy object");
     _scene->add_object(rootObject);
 
-    // create a cube
-    auto meshComponent = rootObject->add_component<project::mesh_component>();
-    std::vector<std::array<float, 3>> vertexCoordinates {
-        { -0.1f, -0.1f, -0.1f }, // 0
-        { 0.1f, -0.1f, -0.1f },  // 1
-        { 0.1f, 0.1f, -0.1f },   // 2
-        { -0.1f, 0.1f, -0.1f },  // 3
-        { -0.1f, -0.1f, 0.1f },  // 4
-        { 0.1f, -0.1f, 0.1f },   // 5
-        { 0.1f, 0.1f, 0.1f },    // 6
-        { -0.1f, 0.1f, 0.1f }    // 7
-    };
-    std::vector<unsigned> vertexIndices {
-        0, 1, 2, 2, 3, 0, // front
-        1, 5, 6, 6, 2, 1, // right
-        5, 4, 7, 7, 6, 5, // back
-        4, 0, 3, 3, 7, 4, // left
-        3, 2, 6, 6, 7, 3, // top
-        4, 5, 1, 1, 0, 4  // bottom
-    };
-    meshComponent->set_vertex_coordinates(vertexCoordinates);
-    meshComponent->set_vertex_indices(vertexIndices);
+    auto cameraObject = project::object::create("Camera");
+    _scene->add_object(cameraObject);
+
+    cameraObject->add_component<project::camera_component>();
+    cameraObject->transform()->set_position({ 10.0f, 10.0f, 10.0f });
 
     auto rendererComponent =
         rootObject->add_component<project::renderer_component>();
@@ -76,6 +68,14 @@ MainWindow::MainWindow(QWidget* parent)
     auto asset = project::asset_manager().load_asset("sample.fbx");
     rendererComponent->set_mesh(
         std::static_pointer_cast<project::assets::mesh>(asset));
+    std::shared_ptr<project::assets::material> material =
+        project::assets::material::create("Default material");
+    material->set_vertex_shader_source(
+        "vec4 vert(vec3 pos) { return vec4(pos, 1.0); }");
+    material->set_fragment_shader_source(
+        "vec4 frag() { return vec4(0.0, 1.0, 0.0, 1.0); }");
+
+    rendererComponent->set_material(std::move(material));
 
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");
@@ -84,6 +84,27 @@ MainWindow::MainWindow(QWidget* parent)
     qobject_cast<viewport::Viewport*>(_viewport)->onInitialized(
         [ this ]()
         { qobject_cast<viewport::Viewport*>(_viewport)->loadScene(_scene); });
+
+    connect(qobject_cast<SceneView*>(_sceneWidget),
+            &SceneView::objectActivated,
+            this,
+            [ this ](std::shared_ptr<project::object> object)
+            {
+        logger->info("Object activated: {}", object->name());
+        auto cameraComponent =
+            object->get_component<project::camera_component>();
+        if (cameraComponent)
+        {
+            viewport::CameraView* view = new viewport::CameraView;
+            qobject_cast<viewport::Viewport*>(view)->onInitialized(
+                [ this, view ]() {
+                qobject_cast<viewport::Viewport*>(view)->loadScene(_scene);
+            });
+
+            view->setCamera(cameraComponent);
+            view->show();
+        }
+    });
 }
 
 MainWindow::~MainWindow() { project::resource_manager::deinit(); }

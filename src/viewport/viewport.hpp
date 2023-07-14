@@ -2,6 +2,8 @@
 
 #include <QOpenGLWidget>
 
+#include "common/matrix.hpp"
+
 class QOpenGLFunctions;
 class QOpenGLFunctions_3_3_Core;
 class QLibrary;
@@ -39,16 +41,16 @@ protected:
 
 private:
     QOpenGLFunctions_3_3_Core* checkAndGetGLFunctions();
-    void updateShader(std::string_view source,
-                      unsigned int& shader,
-                      unsigned int shaderType);
 
-private:
+protected:
     QLibrary* _renderer_lib;
     std::unique_ptr<rendering::renderer, void (*)(rendering::renderer*)>
         _renderer;
     std::shared_ptr<project::scene> _scene;
     std::function<void()> _onInitialized;
+
+    common::matrix4x4 _projection;
+    common::matrix4x4 _view;
 };
 
 } // namespace g::viewport

@@ -50,11 +50,14 @@ public:
 
     std::string name() const;
     asset_type asset_type() const;
-    std::vector<char> const& data() const;
+
+    bool modified() const;
+    void setModified(bool value);
 
 private:
     std::string _name;
     enum class asset_type _asset_type;
+    bool _modified;
 };
 
 template <>

@@ -7,6 +7,7 @@ namespace g::project
 {
 
 class component;
+class transform_component;
 
 class object : public resource
 {
@@ -28,6 +29,8 @@ public:
     void add_child(std::shared_ptr<object> child);
     void remove_child(std::shared_ptr<object> child);
     void change_parent(std::shared_ptr<object> parent);
+
+    std::shared_ptr<transform_component> transform() const;
 
     template <is_component T, typename... ARGS>
     std::shared_ptr<T> add_component(ARGS&&... args)
@@ -58,6 +61,7 @@ private:
     common::uuid _parent_uuid;
     std::list<common::uuid> _children_uuid;
     std::list<common::uuid> _components_uuid;
+    std::shared_ptr<transform_component> _transform;
 };
 
 template <>

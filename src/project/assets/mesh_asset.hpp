@@ -4,28 +4,21 @@
 #include <string_view>
 #include <vector>
 
+#include "common/vector.hpp"
 #include "project/asset.hpp"
 
 namespace g::project::assets
 {
 
-struct vector3
-{
-    float x;
-    float y;
-    float z;
-};
-
-struct vector2
-{
-    float x;
-    float y;
-};
-
 class mesh : public asset
 {
 public:
-    using vertex_t = std::tuple<vector3, vector3, vector2>;
+    using vertex_t = struct
+    {
+        common::vector3 position;
+        common::vector3 normal;
+        common::vector2 uv;
+    };
     using vertices_t = std::vector<vertex_t>;
     using indices_t = std::vector<unsigned>;
 
@@ -38,8 +31,8 @@ public:
     static std::shared_ptr<mesh>
     create(std::string_view name, vertices_t vertices, indices_t indices);
 
-	vertices_t const& vertices() const;
-	indices_t const& indices() const;
+    vertices_t const& vertices() const;
+    indices_t const& indices() const;
 
 private:
     vertices_t _vertices;

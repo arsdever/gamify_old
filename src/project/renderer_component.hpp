@@ -9,11 +9,11 @@ namespace g::project
 {
 
 class object;
-class material;
 
 namespace assets
 {
 class mesh;
+class material;
 } // namespace assets
 
 struct render_context
@@ -36,16 +36,17 @@ public:
     std::shared_ptr<assets::mesh> mesh() const;
     void set_mesh(std::shared_ptr<assets::mesh> mesh);
 
-    material* material() const;
-    void set_material(std::unique_ptr<class material>&& material);
+    std::shared_ptr<assets::material> material() const;
+    void set_material(std::shared_ptr<assets::material> material);
 
     render_context* render_context() const;
-    void set_render_context(std::unique_ptr<struct render_context>&& renderContext);
+    void
+    set_render_context(std::unique_ptr<struct render_context>&& renderContext);
 
 private:
     std::unique_ptr<struct render_context> _render_context { nullptr };
     common::uuid _mesh_uuid;
-    std::unique_ptr<class material> _material { nullptr };
+    common::uuid _material_uuid;
 };
 
 } // namespace g::project
