@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string_view>
+#include <unordered_map>
+
 namespace g::project
 {
 
@@ -12,7 +15,9 @@ public:
     asset_manager();
     ~asset_manager();
 
-    std::shared_ptr<asset> load_asset(std::string_view file_path);
+    // TODO: Find a better way to do this
+    std::unordered_map<std::string, std::shared_ptr<asset>>
+    load_asset(std::string_view file_path);
     void create_asset(std::string_view file_path);
 };
 

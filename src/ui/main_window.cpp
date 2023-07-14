@@ -65,17 +65,12 @@ MainWindow::MainWindow(QWidget* parent)
     auto rendererComponent =
         rootObject->add_component<project::renderer_component>();
 
-    auto asset = project::asset_manager().load_asset("sample.fbx");
+    auto assets = project::asset_manager().load_asset("sample.fbx");
     rendererComponent->set_mesh(
-        std::static_pointer_cast<project::assets::mesh>(asset));
-    std::shared_ptr<project::assets::material> material =
-        project::assets::material::create("Default material");
-    material->set_vertex_shader_source(
-        "vec4 vert(vec3 pos) { return vec4(pos, 1.0); }");
-    material->set_fragment_shader_source(
-        "vec4 frag() { return vec4(0.0, 1.0, 0.0, 1.0); }");
-
-    rendererComponent->set_material(std::move(material));
+        std::static_pointer_cast<project::assets::mesh>(assets[ "mesh" ]));
+    rendererComponent->set_material(
+        std::static_pointer_cast<project::assets::material>(
+            assets[ "material" ]));
 
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");
