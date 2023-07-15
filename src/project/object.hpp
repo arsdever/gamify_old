@@ -22,6 +22,7 @@ public:
 
     std::string name();
     std::list<common::uuid> const& children_uuid() const;
+    std::list<common::uuid> const& components_uuid() const;
 
     common::uuid parent_uuid() const;
     std::shared_ptr<object> parent() const;
@@ -41,10 +42,10 @@ public:
         add_component(component);
         return component;
     }
-    std::shared_ptr<component> get_component(std::string_view classname);
+    std::shared_ptr<component> get_component(std::string_view classname) const;
 
     template <is_component T>
-    std::shared_ptr<T> get_component()
+    std::shared_ptr<T> get_component() const
     {
         return std::dynamic_pointer_cast<T>(get_component(T::type()));
     }

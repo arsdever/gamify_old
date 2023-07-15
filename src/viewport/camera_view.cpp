@@ -39,6 +39,7 @@ void CameraView::setCamera(std::shared_ptr<project::camera_component> camera)
     std::copy(
         projection.data(), projection.data() + 16, _projection.data.data());
     std::copy(view.data(), view.data() + 16, _view.data.data());
+    update();
 }
 
 std::shared_ptr<project::camera_component> CameraView::camera() const

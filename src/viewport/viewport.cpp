@@ -135,12 +135,26 @@ void Viewport::paintGL()
             {
                 _renderer->render(rendererComponent);
             }
+
+            for (auto& component_uuid : object->components_uuid())
+            {
+                auto component = project::resource_manager::get_resource_static<
+                    project::component>(component_uuid);
+                component->draw_gizmos(*_renderer);
+            }
         }
         auto rendererComponent =
             root_object->get_component<project::renderer_component>();
         if (rendererComponent)
         {
             _renderer->render(rendererComponent);
+        }
+
+        for (auto& component_uuid : root_object->components_uuid())
+        {
+            auto component = project::resource_manager::get_resource_static<
+                project::component>(component_uuid);
+            component->draw_gizmos(*_renderer);
         }
     }
 

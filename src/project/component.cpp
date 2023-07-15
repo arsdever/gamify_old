@@ -33,4 +33,11 @@ void component::enable() { set_enabled(true); }
 
 void component::disable() { set_enabled(false); }
 
+std::shared_ptr<transform_component> component::transform() const
+{
+    return object()->transform();
+}
+
+void component::draw_gizmos(rendering::gizmo_renderer& renderer) const { }
+
 } // namespace g::project

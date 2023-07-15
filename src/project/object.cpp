@@ -48,6 +48,11 @@ std::list<common::uuid> const& object::children_uuid() const
     return _children_uuid;
 }
 
+std::list<common::uuid> const& object::components_uuid() const
+{
+    return _components_uuid;
+}
+
 common::uuid object::parent_uuid() const { return _parent_uuid; }
 
 std::shared_ptr<object> object::parent() const
@@ -128,7 +133,8 @@ void object::add_component(std::shared_ptr<component> component_)
     _components_uuid.push_back(component_->uuid());
 }
 
-std::shared_ptr<component> object::get_component(std::string_view classname)
+std::shared_ptr<component>
+object::get_component(std::string_view classname) const
 {
     for (auto const& component_uuid : _components_uuid)
     {

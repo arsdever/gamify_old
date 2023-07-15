@@ -2,10 +2,12 @@
 
 #include "common/matrix.hpp"
 #include "g_rendering_export.hpp"
+#include "rendering/gizmo_renderer.hpp"
 
 namespace g::common
 {
 struct matrix4x4;
+struct vector3;
 } // namespace g::common
 
 namespace g::project
@@ -18,13 +20,11 @@ struct render_context;
 namespace g::rendering
 {
 
-class G_RENDERING_EXPORT renderer
+class G_RENDERING_EXPORT renderer : public gizmo_renderer
 {
 public:
     virtual ~renderer() = 0;
 
-    void setResourceManager(
-        std::shared_ptr<project::resource_manager> resourceManager);
     virtual void initialize() = 0;
     virtual void
     render(std::shared_ptr<project::renderer_component> renderer) = 0;
@@ -33,6 +33,8 @@ public:
 
     void set_projection_matrix(common::matrix4x4 projectionMatrix);
     void set_view_matrix(common::matrix4x4 viewMatrix);
+    void setResourceManager(
+        std::shared_ptr<project::resource_manager> resourceManager);
 
 protected:
     common::matrix4x4 _projection_matrix;

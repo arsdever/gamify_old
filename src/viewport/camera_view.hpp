@@ -8,6 +8,7 @@ namespace g::viewport
 
 class CameraView : public Viewport
 {
+    Q_OBJECT
 public:
     CameraView(QWidget* parent = nullptr);
     ~CameraView();

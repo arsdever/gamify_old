@@ -1,6 +1,8 @@
 #include "project/camera_component.hpp"
 
 #include "project/resource_manager.hpp"
+#include "project/transform_component.hpp"
+#include "rendering/gizmo_renderer.hpp"
 
 namespace g::project
 {
@@ -23,5 +25,12 @@ camera_component::create(std::shared_ptr<class object> parent)
 }
 
 std::string camera_component::type() { return "camera"; }
+
+void camera_component::draw_gizmos(rendering::gizmo_renderer& renderer) const
+{
+    renderer.draw_cube(transform()->position(),
+                       common::vector3 { .5, .5, .5 },
+                       common::vector3 { 1, 1, 0 });
+}
 
 } // namespace g::project

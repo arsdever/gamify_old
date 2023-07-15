@@ -47,7 +47,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _fragmentShaderEditor { new QPlainTextEdit }
 {
     project::resource_manager::init();
-    _viewport = new viewport::Viewport;
+    _viewport = new viewport::CameraView;
     initializeDockWidgets();
 
     _project->add_scene(_scene);
@@ -75,10 +75,22 @@ MainWindow::MainWindow(QWidget* parent)
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");
     sceneMenu->addActions(_sceneWidget->actions());
+    menuBar()->addAction("Update", this, [ this ]() { _viewport->update(); });
 
     qobject_cast<viewport::Viewport*>(_viewport)->onInitialized(
         [ this ]()
-        { qobject_cast<viewport::Viewport*>(_viewport)->loadScene(_scene); });
+        {
+        viewport::CameraView* view =
+            qobject_cast<viewport::CameraView*>(_viewport);
+        view->loadScene(_scene);
+
+        auto viewportCameraObject = project::object::create("Camera");
+        viewportCameraObject->add_component<project::camera_component>();
+        viewportCameraObject->transform()->set_position({ 0.0f, 0.0f, 100.0f });
+
+        view->setCamera(
+            viewportCameraObject->get_component<project::camera_component>());
+    });
 
     connect(qobject_cast<SceneView*>(_sceneWidget),
             &SceneView::objectActivated,

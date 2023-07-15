@@ -4,7 +4,7 @@
 #include <QOpenGLVersionFunctionsFactory>
 #include <fstream>
 
-#include "renderer.hpp"
+#include "rendering/renderer.hpp"
 
 #include "common/logger.hpp"
 #include "common/matrix.hpp"
@@ -78,13 +78,23 @@ public:
     virtual void
     load_object(std::shared_ptr<project::renderer_component> renderer) override;
 
+    void draw_cube(common::vector3 position,
+                   common::vector3 size,
+                   common::vector3 color) override;
+
 private:
+    unsigned load_shader_from_file(std::string_view path);
+    unsigned load_shader_from_string(std::string_view source, int type);
+
     QOpenGLFunctions_3_3_Core* checkAndGetGLFunctions();
 
     unsigned modelViewProjectionShader;
     unsigned lightingFragmentShader;
     unsigned default_vert;
     unsigned default_frag;
+    unsigned gizmos_vert;
+    unsigned gizmos_frag;
+    unsigned _gizmos_program;
 };
 
 renderer::renderer() = default;
@@ -99,85 +109,25 @@ void renderer::initialize()
 
     f->glEnable(GL_DEPTH_TEST);
 
-    std::string error_log;
-    int error_state;
-    error_log.resize(512);
+    modelViewProjectionShader = load_shader_from_file("projection.vert");
+    lightingFragmentShader = load_shader_from_file("lighting.frag");
+    default_vert = load_shader_from_file("default.vert");
+    default_frag = load_shader_from_file("default.frag");
+    gizmos_vert = load_shader_from_file("gizmos.vert");
+    gizmos_frag = load_shader_from_file("gizmos.frag");
 
-    std::ifstream modelViewProjectionShaderFile("projection.vert");
-    std::string modelViewProjectionShaderSource(
-        (std::istreambuf_iterator<char>(modelViewProjectionShaderFile)),
-        std::istreambuf_iterator<char>());
-    auto* modelViewProjectionShaderSourceC =
-        modelViewProjectionShaderSource.c_str();
-
-    std::ifstream lightingFragmentShaderFile("lighting.frag");
-    std::string lightingFragmentShaderSource(
-        (std::istreambuf_iterator<char>(lightingFragmentShaderFile)),
-        std::istreambuf_iterator<char>());
-    auto* lightingFragmentShaderSourceC = lightingFragmentShaderSource.c_str();
-
-    modelViewProjectionShader = f->glCreateShader(GL_VERTEX_SHADER);
-    f->glShaderSource(modelViewProjectionShader,
-                      1,
-                      &modelViewProjectionShaderSourceC,
-                      nullptr);
-    f->glCompileShader(modelViewProjectionShader);
-    f->glGetShaderiv(
-        modelViewProjectionShader, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
+    _gizmos_program = f->glCreateProgram();
+    f->glAttachShader(_gizmos_program, modelViewProjectionShader);
+    f->glAttachShader(_gizmos_program, gizmos_vert);
+    f->glAttachShader(_gizmos_program, gizmos_frag);
+    f->glLinkProgram(_gizmos_program);
+    int success;
+    f->glGetProgramiv(_gizmos_program, GL_LINK_STATUS, &success);
+    if (!success)
     {
-        f->glGetShaderInfoLog(
-            modelViewProjectionShader, 512, nullptr, error_log.data());
-        logger->error("Error compiling modelViewProjectionShader: {}",
-                      error_log);
-    }
-
-    lightingFragmentShader = f->glCreateShader(GL_FRAGMENT_SHADER);
-    f->glShaderSource(
-        lightingFragmentShader, 1, &lightingFragmentShaderSourceC, nullptr);
-    f->glCompileShader(lightingFragmentShader);
-    f->glGetShaderiv(lightingFragmentShader, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(
-            lightingFragmentShader, 512, nullptr, error_log.data());
-        logger->error("Error compiling lighting fragment shader: {}",
-                      error_log);
-    }
-
-    default_vert = f->glCreateShader(GL_VERTEX_SHADER);
-    default_frag = f->glCreateShader(GL_FRAGMENT_SHADER);
-
-    std::ifstream default_vertex_shader_file("default.vert");
-    std::string default_vertex_shader_source(
-        (std::istreambuf_iterator<char>(default_vertex_shader_file)),
-        std::istreambuf_iterator<char>());
-    std::ifstream default_fragment_shader_file("default.frag");
-    std::string default_fragment_shader_source(
-        (std::istreambuf_iterator<char>(default_fragment_shader_file)),
-        std::istreambuf_iterator<char>());
-
-    auto* default_vertex_shader_sourceC = default_vertex_shader_source.c_str();
-    auto* default_fragment_shader_sourceC =
-        default_fragment_shader_source.c_str();
-
-    f->glShaderSource(default_vert, 1, &default_vertex_shader_sourceC, nullptr);
-    f->glCompileShader(default_vert);
-    f->glGetShaderiv(default_vert, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(default_vert, 512, nullptr, error_log.data());
-        logger->error("Error compiling default vertex shader: {}", error_log);
-    }
-
-    f->glShaderSource(
-        default_frag, 1, &default_fragment_shader_sourceC, nullptr);
-    f->glCompileShader(default_frag);
-    f->glGetShaderiv(default_frag, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(default_frag, 512, nullptr, error_log.data());
-        logger->error("Error compiling default fragment shader: {}", error_log);
+        char infoLog[ 512 ];
+        f->glGetProgramInfoLog(_gizmos_program, 512, nullptr, infoLog);
+        logger->error("Shader program linking failed: {}", infoLog);
     }
 }
 
@@ -203,7 +153,7 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
                 render_context->program, property.first.c_str());
             if (propertyLocation == -1)
             {
-                logger->warn("Could not find uniform {}", property.first);
+                logger->warn("Could not find uniform {}. May be because of shader compiler optimizations.", property.first);
                 continue;
             }
 
@@ -242,6 +192,78 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
         f->glBindVertexArray(0);
         f->glUseProgram(0);
     }
+}
+
+void renderer::draw_cube(common::vector3 position,
+                         common::vector3 size,
+                         common::vector3 color)
+{
+    auto* f = checkAndGetGLFunctions();
+    // generate cube with 1 side length
+    std::array<float, 24> cube_vertices = {
+        -0.5, -0.5, -0.5, // left bottom back
+        0.5,  -0.5, -0.5, // right bottom back
+        0.5,  0.5,  -0.5, // right top back
+        -0.5, 0.5,  -0.5, // left top back
+        -0.5, -0.5, 0.5,  // left bottom front
+        0.5,  -0.5, 0.5,  // right bottom front
+        0.5,  0.5,  0.5,  // right top front
+        -0.5, 0.5,  0.5   // left top front
+    };
+
+    // generate indices for cube sides
+    std::array<unsigned, 36> cube_indices = {
+        0, 1, 2, 2, 3, 0, // back
+        1, 5, 6, 6, 2, 1, // right
+        7, 6, 5, 5, 4, 7, // front
+        4, 0, 3, 3, 7, 4, // left
+        4, 5, 1, 1, 0, 4, // bottom
+        3, 2, 6, 6, 7, 3  // top
+    };
+
+    QMatrix4x4 model_matrix;
+    model_matrix.setToIdentity();
+    model_matrix.translate(position.x, position.y, position.z);
+    model_matrix.scale(size.x, size.y, size.z);
+
+    unsigned vao, vbo, ebo;
+    f->glGenVertexArrays(1, &vao);
+    f->glGenBuffers(1, &vbo);
+    f->glGenBuffers(1, &ebo);
+    f->glBindVertexArray(vao);
+    f->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    f->glBufferData(GL_ARRAY_BUFFER,
+                    cube_vertices.size() * sizeof(float),
+                    cube_vertices.data(),
+                    GL_STATIC_DRAW);
+    f->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                    cube_indices.size() * sizeof(unsigned),
+                    cube_indices.data(),
+                    GL_STATIC_DRAW);
+    f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+    f->glEnableVertexAttribArray(0);
+
+    f->glUseProgram(_gizmos_program);
+    f->glUniformMatrix4fv(f->glGetUniformLocation(_gizmos_program, "view"),
+                          1,
+                          GL_FALSE,
+                          _view_matrix.data.data());
+    f->glUniformMatrix4fv(
+        f->glGetUniformLocation(_gizmos_program, "projection"),
+        1,
+        GL_FALSE,
+        _projection_matrix.data.data());
+    f->glUniformMatrix4fv(f->glGetUniformLocation(_gizmos_program, "model"),
+                          1,
+                          GL_FALSE,
+                          model_matrix.data());
+    f->glUniform3fv(f->glGetUniformLocation(_gizmos_program, "color"),
+                    1,
+                    reinterpret_cast<float*>(&color));
+    f->glDrawElements(GL_LINES, cube_indices.size(), GL_UNSIGNED_INT, 0);
+    f->glBindVertexArray(0);
+    f->glUseProgram(0);
 }
 
 void renderer::load_object(
@@ -386,6 +408,61 @@ QOpenGLFunctions_3_3_Core* renderer::checkAndGetGLFunctions()
         throw std::runtime_error("OpenGL functions are not available");
     }
     return f;
+}
+
+unsigned renderer::load_shader_from_file(std::string_view path)
+{
+    std::string extension { path.substr(path.find_last_of(".") + 1) };
+    int shader_type = -1;
+    if (extension == "vert")
+    {
+        shader_type = GL_VERTEX_SHADER;
+    }
+    else if (extension == "frag")
+    {
+        shader_type = GL_FRAGMENT_SHADER;
+    }
+    else
+    {
+        logger->error("Unknown shader extension: {}", extension);
+        return 0;
+    }
+
+    std::ifstream shader_file;
+    shader_file.open(path.data());
+    if (!shader_file.is_open())
+    {
+        logger->error("Could not open shader file: {}", path);
+        return 0;
+    }
+
+    std::string shader_source;
+    shader_source.assign(std::istreambuf_iterator<char>(shader_file),
+                         std::istreambuf_iterator<char>());
+    logger->debug("Loading shader from file: {}", path);
+    return load_shader_from_string(shader_source, shader_type);
+}
+
+unsigned renderer::load_shader_from_string(std::string_view shader_source,
+                                           int shader_type)
+{
+    auto const* shader_source_ptr = shader_source.data();
+
+    auto f = checkAndGetGLFunctions();
+    unsigned shader = f->glCreateShader(shader_type);
+    f->glShaderSource(shader, 1, &shader_source_ptr, nullptr);
+    f->glCompileShader(shader);
+    int error_state;
+    f->glGetShaderiv(shader, GL_COMPILE_STATUS, &error_state);
+    if (!error_state)
+    {
+        std::string error_log;
+        error_log.resize(512);
+        f->glGetShaderInfoLog(shader, 512, nullptr, error_log.data());
+        logger->error("Error compiling shader: {}", error_log);
+        return 0;
+    }
+    return shader;
 }
 
 } // namespace impl

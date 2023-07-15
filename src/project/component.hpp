@@ -4,8 +4,15 @@
 #include "project/object.hpp"
 #include "project/resource.hpp"
 
+namespace g::rendering
+{
+struct gizmo_renderer;
+} // namespace g::rendering
+
 namespace g::project
 {
+
+class transform_component;
 
 class component : public resource
 {
@@ -24,11 +31,15 @@ public:
     void enable();
     void disable();
 
+    std::shared_ptr<transform_component> transform() const;
+
     template <typename T>
-    std::shared_ptr<T> get_component()
+    std::shared_ptr<T> get_component() const
     {
         return std::dynamic_pointer_cast<T>(object()->get_component(T::type()));
     }
+
+    virtual void draw_gizmos(rendering::gizmo_renderer& renderer) const;
 
 protected:
     std::string _classname;

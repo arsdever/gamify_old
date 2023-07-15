@@ -19,6 +19,8 @@ public:
     create(std::shared_ptr<class object> parent);
     static std::string type();
 
+    void draw_gizmos(rendering::gizmo_renderer& renderer) const override;
+
 private:
 };
 
