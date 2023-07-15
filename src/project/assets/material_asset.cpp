@@ -1,5 +1,6 @@
 #include "project/assets/material_asset.hpp"
 
+#include "project/assets/shader_asset.hpp"
 #include "project/resource_manager.hpp"
 
 namespace g::project::assets
@@ -20,14 +21,10 @@ std::shared_ptr<material> material::create(std::string_view name)
     return resource;
 }
 
-std::string const& material::vertex_shader_source() const
+std::shared_ptr<shader> material::shader() const
 {
-    return _vertex_shader_source;
-}
-
-std::string const& material::fragment_shader_source() const
-{
-    return _fragment_shader_source;
+    return std::static_pointer_cast<assets::shader>(
+        resource_manager::get()->get_resource<asset>(_shader_uuid));
 }
 
 const std::unordered_map<std::string, material::property_t>&
@@ -41,15 +38,15 @@ material::property_t const& material::property(std::string_view name) const
     return _properties.at(name.data());
 }
 
-void material::set_vertex_shader_source(std::string_view vertex_shader_source)
+void material::set_shader(std::shared_ptr<class shader> shader)
 {
-    _vertex_shader_source = vertex_shader_source;
-}
+    if (shader)
+    {
+        _shader_uuid = shader->uuid();
+        return;
+    }
 
-void material::set_fragment_shader_source(
-    std::string_view fragment_shader_source)
-{
-    _fragment_shader_source = fragment_shader_source;
+    _shader_uuid = {};
 }
 
 void material::set_property(std::string_view name, property_t value)

@@ -10,6 +10,7 @@
 #include "common/matrix.hpp"
 #include "project/assets/material_asset.hpp"
 #include "project/assets/mesh_asset.hpp"
+#include "project/assets/shader_asset.hpp"
 #include "project/object.hpp"
 #include "project/project.hpp"
 #include "project/renderer_component.hpp"
@@ -227,6 +228,13 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
                               1,
                               GL_FALSE,
                               model_matrix.data());
+        std::array<float, 3> position = { _view_matrix.data[ 3 ],
+                                          _view_matrix.data[ 7 ],
+                                          _view_matrix.data[ 11 ] };
+        f->glUniform3fv(
+            f->glGetUniformLocation(render_context->program, "view_position"),
+            1,
+            position.data());
 
         f->glBindVertexArray(render_context->vao);
         f->glDrawElements(
@@ -302,8 +310,10 @@ void renderer::load_object(
     auto material = renderer->material();
     if (material)
     {
-        std::string vshader_source = material->vertex_shader_source();
-        std::string fshader_source = material->fragment_shader_source();
+        auto shader = material->shader();
+
+        std::string vshader_source = shader->vertex_shader_source();
+        std::string fshader_source = shader->fragment_shader_source();
 
         const char* vsh = vshader_source.c_str();
         const char* fsh = fshader_source.c_str();

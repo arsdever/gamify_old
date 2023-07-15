@@ -5,6 +5,7 @@
 #include "common/logger.hpp"
 #include "project/assets/material_asset.hpp"
 #include "project/assets/mesh_asset.hpp"
+#include "project/assets/shader_asset.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -22,7 +23,8 @@ std::unordered_map<std::string, std::shared_ptr<asset>>
 asset_manager::load_asset(std::string_view file_path)
 {
     auto importer = Assimp::Importer();
-    const aiScene* scene = importer.ReadFile(file_path.data(), 0);
+    const aiScene* scene = importer.ReadFile(
+        file_path.data(), aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene)
     {
@@ -106,10 +108,16 @@ asset_manager::load_asset(std::string_view file_path)
             (std::istreambuf_iterator<char>(default_fragment_shader_file)),
             std::istreambuf_iterator<char>());
 
-        material_asset->set_vertex_shader_source(default_vertex_shader_source);
-        material_asset->set_fragment_shader_source(
+        auto shader_asset = std::static_pointer_cast<assets::shader>(
+            assets::shader::create("default"));
+        shader_asset->set_vertex_shader_source(default_vertex_shader_source);
+        shader_asset->set_fragment_shader_source(
             default_fragment_shader_source);
+
+        material_asset->set_shader(shader_asset);
+
         result.emplace("material", material_asset);
+        result.emplace("shader", shader_asset);
     }
 
     return result;

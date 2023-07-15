@@ -14,7 +14,8 @@ set(HEADERS
     scene.hpp
     transform_component.hpp
     assets/mesh_asset.hpp
-    assets/material_asset.hpp)
+    assets/material_asset.hpp
+    assets/shader_asset.hpp)
 set(SOURCES
     asset.cpp
     asset_manager.cpp
@@ -28,7 +29,8 @@ set(SOURCES
     scene.cpp
     transform_component.cpp
     assets/mesh_asset.cpp
-    assets/material_asset.cpp)
+    assets/material_asset.cpp
+    assets/shader_asset.cpp)
 
 add_library(g_project STATIC ${SOURCES} ${HEADERS})
 add_library(g::project ALIAS g_project)
