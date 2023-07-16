@@ -11,6 +11,7 @@
 #include "project/assets/material_asset.hpp"
 #include "project/assets/mesh_asset.hpp"
 #include "project/assets/shader_asset.hpp"
+#include "project/assets/texture_asset.hpp"
 #include "project/object.hpp"
 #include "project/project.hpp"
 #include "project/renderer_component.hpp"
@@ -85,6 +86,8 @@ private:
     unsigned lightingFragmentShader;
     unsigned default_vert;
     unsigned default_frag;
+
+    std::unordered_map<common::uuid, unsigned> _textures;
 };
 
 renderer::renderer() = default;
@@ -207,10 +210,20 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
                 continue;
             }
 
-            f->glUniform3fv(propertyLocation,
-                            1,
-                            reinterpret_cast<const float*>(
-                                &std::get<common::color>(property.second)));
+            if (std::holds_alternative<common::uuid>(property.second))
+            {
+                f->glActiveTexture(GL_TEXTURE0);
+                f->glBindTexture(
+                    GL_TEXTURE_2D,
+                    _textures[ std::get<common::uuid>(property.second) ]);
+            }
+            else
+            {
+                f->glUniform3fv(propertyLocation,
+                                1,
+                                reinterpret_cast<const float*>(
+                                    &std::get<common::color>(property.second)));
+            }
         }
 
         f->glUniformMatrix4fv(render_context->uniforms[ "view" ],
@@ -310,6 +323,46 @@ void renderer::load_object(
     auto material = renderer->material();
     if (material)
     {
+        for (auto const& [ key, value ] : material->properties())
+        {
+            if (!key.starts_with("texture_"))
+            {
+                continue;
+            }
+
+            auto texture_uuid = std::get<common::uuid>(value);
+            auto texture = std::static_pointer_cast<project::assets::texture>(
+                project::resource_manager::get_resource_static<project::asset>(
+                    texture_uuid));
+
+            if (!texture)
+            {
+                logger->error("Could not find texture {}", texture_uuid);
+                continue;
+            }
+
+            unsigned texture_id;
+            f->glGenTextures(1, &texture_id);
+            f->glBindTexture(GL_TEXTURE_2D, texture_id);
+            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            f->glTexImage2D(GL_TEXTURE_2D,
+                            0,
+                            GL_RGBA,
+                            std::get<0>(texture->size()),
+                            std::get<1>(texture->size()),
+                            0,
+                            GL_RGBA,
+                            GL_UNSIGNED_BYTE,
+                            texture->data().data());
+
+            f->glGenerateMipmap(GL_TEXTURE_2D);
+            _textures[ texture_uuid ] = texture_id;
+        }
+
         auto shader = material->shader();
 
         std::string vshader_source = shader->vertex_shader_source();

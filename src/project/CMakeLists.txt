@@ -1,5 +1,6 @@
 find_package(Boost REQUIRED)
 find_package(assimp REQUIRED)
+find_package(PNG REQUIRED)
 
 set(HEADERS
     asset.hpp
@@ -15,7 +16,8 @@ set(HEADERS
     transform_component.hpp
     assets/mesh_asset.hpp
     assets/material_asset.hpp
-    assets/shader_asset.hpp)
+    assets/shader_asset.hpp
+    assets/texture_asset.hpp)
 set(SOURCES
     asset.cpp
     asset_manager.cpp
@@ -30,10 +32,11 @@ set(SOURCES
     transform_component.cpp
     assets/mesh_asset.cpp
     assets/material_asset.cpp
-    assets/shader_asset.cpp)
+    assets/shader_asset.cpp
+    assets/texture_asset.cpp)
 
 add_library(g_project STATIC ${SOURCES} ${HEADERS})
 add_library(g::project ALIAS g_project)
 
-target_link_libraries(g_project PUBLIC assimp::assimp Boost::boost g::common)
+target_link_libraries(g_project PUBLIC assimp::assimp PNG::PNG Boost::boost g::common)
 target_precompile_headers(g_project REUSE_FROM stdafx)

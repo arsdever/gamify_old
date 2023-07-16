@@ -15,8 +15,13 @@ class shader;
 class material : public asset
 {
 public:
-    using property_t = std::
-        variant<double, float, int, unsigned, bool, std::string, common::color>;
+    using property_t = std::variant<double,
+                                    float,
+                                    int,
+                                    unsigned,
+                                    bool,
+                                    common::color,
+                                    common::uuid>;
 
 private:
     material(std::string_view name);

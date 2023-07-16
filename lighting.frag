@@ -44,21 +44,22 @@ void main()
     for (int i = 0; i < LIGHT_COUNT; ++i)
     {
         // ambient
-        vec3 ambient = light[ i ].color * ambient_color;
+        // vec3 ambient = light[ i ].color * ambient_color;
 
         // diffuse
         vec3 norm = normalize(frag_normal);
         vec3 lightDir = normalize(light[ i ].position - frag_position.xyz);
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = light[ i ].color * (diff * diffuse_color);
+        vec3 diffuse = light[ i ].color * (diff * frag().rgb);
 
-        // specular
-        vec3 viewDir = normalize(view_position - frag_position.xyz);
-        vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-        vec3 specular = light[ i ].color * (spec * specular_color);
+        // // specular
+        // vec3 viewDir = normalize(view_position - frag_position.xyz);
+        // vec3 reflectDir = reflect(-lightDir, norm);
+        // float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+        // vec3 specular = light[ i ].color * (spec * specular_color);
 
-        result += ambient + diffuse + specular;
+        // result += ambient + diffuse + specular;
+        result += diffuse;
     }
 
     color = vec4(result, 1.0);

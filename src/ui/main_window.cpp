@@ -10,6 +10,7 @@
 
 #include "project/assets/material_asset.hpp"
 #include "project/assets/mesh_asset.hpp"
+#include "project/assets/texture_asset.hpp"
 #include "project/object.hpp"
 #include "project/project.hpp"
 #include "project/renderer_component.hpp"
@@ -68,9 +69,9 @@ MainWindow::MainWindow(QWidget* parent)
     auto assets = project::asset_manager().load_asset("sample.fbx");
     rendererComponent->set_mesh(
         std::static_pointer_cast<project::assets::mesh>(assets[ "mesh" ]));
-    rendererComponent->set_material(
-        std::static_pointer_cast<project::assets::material>(
-            assets[ "material" ]));
+    auto material = std::static_pointer_cast<project::assets::material>(
+        assets[ "material" ]);
+    rendererComponent->set_material(material);
 
     setMenuBar(new QMenuBar);
     QMenu* sceneMenu = menuBar()->addMenu("Scene");

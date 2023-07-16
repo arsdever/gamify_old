@@ -106,7 +106,8 @@
 		"qopenglversionfunctionsfactory": "cpp",
 		"random": "cpp",
 		"ranges": "cpp",
-		"span": "cpp"
+		"span": "cpp",
+		"stack": "cpp"
 	},
 	"sonarlint.pathToCompileCommands": "${workspaceFolder}\\build\\compile_commands.json"
 }

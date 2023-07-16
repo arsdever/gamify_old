@@ -44,8 +44,10 @@ asset_type asset_type_from_string_view(std::string_view str);
 
 class asset : public resource
 {
-public:
+protected:
     asset(std::string_view name, asset_type type);
+
+public:
     virtual ~asset();
 
     std::string name() const;
