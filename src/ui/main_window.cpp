@@ -1,6 +1,7 @@
 #include <QFileDialog>
 #include <QListView>
 #include <QPlainTextEdit>
+#include <QQuaternion>
 #include <QTabWidget>
 #include <QToolBar>
 #include <QToolButton>
@@ -62,6 +63,10 @@ MainWindow::MainWindow(QWidget* parent)
 
     cameraObject->add_component<project::camera_component>();
     cameraObject->transform()->set_position({ 10.0f, 10.0f, 10.0f });
+    QQuaternion direction = QQuaternion::fromDirection({ -10.0f, -10.0f, -10.0f },
+                                                       { 0.0f, 1.0f, 0.0f });
+    cameraObject->transform()->set_rotation(common::quaternion {
+        direction.x(), direction.y(), direction.z(), direction.scalar() });
 
     auto rendererComponent =
         rootObject->add_component<project::renderer_component>();

@@ -36,12 +36,12 @@ void transform_component::set_position(common::vector3 const& position)
     _position = position;
 }
 
-common::vector3 const& transform_component::rotation() const
+common::quaternion const& transform_component::rotation() const
 {
     return _rotation;
 }
 
-void transform_component::set_rotation(common::vector3 const& rotation)
+void transform_component::set_rotation(common::quaternion const& rotation)
 {
     _rotation = rotation;
 }

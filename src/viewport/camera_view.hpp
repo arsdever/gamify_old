@@ -28,10 +28,12 @@ protected:
     void wheelEvent(QWheelEvent* event) override;
 
 private:
+    void recalculateViewMatrix();
+
+private:
     std::shared_ptr<project::camera_component> _camera;
 
     QPoint _last_mouse_pos;
-    QLabel* _label;
 };
 
 } // namespace g::viewport
