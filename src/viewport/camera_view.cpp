@@ -1,6 +1,5 @@
 
 #include <QLabel>
-#include <QMatrix4x4>
 #include <QMouseEvent>
 #include <QWheelEvent>
 
@@ -75,18 +74,8 @@ void CameraView::wheelEvent(QWheelEvent* event) { }
 
 void CameraView::recalculateViewMatrix()
 {
-    QMatrix4x4 view;
-    view.setToIdentity();
-
     auto position = _camera->object()->transform()->position();
-    auto rotation = _camera->object()->transform()->rotation();
-
-    QVector3D qposition(position.x(), position.y(), position.z());
-    QQuaternion qrotation(rotation.w, rotation.x, rotation.y, rotation.z);
-
-    // view.lookAt(qposition, qposition + forward, up);
-    view.lookAt(qposition, { 0, 0, 0 }, { 0, 1, 0 });
-    _view = common::matrix4x4f::from_raw_data(view.data());
+    _view = common::matrix4x4f::from_look(position, { 0, 0, 0 }, { 0, 1, 0 });
 }
 
 } // namespace g::viewport

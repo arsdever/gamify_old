@@ -65,6 +65,16 @@ public:
      */
     static matrix4x4<T> from_raw_data(const T* data);
 
+    static matrix4x4<T> from_look(vector3 from, vector3 to, vector3 up);
+
+    /**
+     * @brief Get the matrix from a quaternion.
+     *
+     * @param quat the quaternion
+     * @return matrix4x4<T> the matrix of the quaternion
+     */
+    static matrix4x4<T> from_quaternion(quaternion quat);
+
 #pragma endregion
 
 public:
@@ -395,9 +405,9 @@ matrix4x4<T> matrix4x4<T>::perspective(fov_t fov,
 template <typename T>
 template <typename dimension_t, typename near_plane_t, typename far_plane_t>
 matrix4x4<T> matrix4x4<T>::orthographic(dimension_t width,
-                                               dimension_t height,
-                                               near_plane_t near_plane,
-                                               far_plane_t far_plane)
+                                        dimension_t height,
+                                        near_plane_t near_plane,
+                                        far_plane_t far_plane)
 {
     matrix4x4<T> result;
     result[ 0 ][ 0 ] = static_cast<T>(2 / width);
@@ -414,6 +424,76 @@ matrix4x4<T> matrix4x4<T>::orthographic(dimension_t width,
             static_cast<T>((near_plane + far_plane) / (near_plane - far_plane));
     }
     result[ 3 ][ 3 ] = static_cast<T>(1);
+    return result;
+}
+
+template <typename T>
+matrix4x4<T> matrix4x4<T>::from_look(vector3 from, vector3 to, vector3 up)
+{
+    vector3 forward = to - from;
+    // TODO: if forward is null return
+
+    forward.normalize();
+    vector3 side = forward.cross(up);
+    side.normalize();
+    vector3 upVector = side.cross(forward);
+
+    matrix4x4<T> result;
+    result[ 0 ][ 0 ] = side.x();
+    result[ 1 ][ 0 ] = side.y();
+    result[ 2 ][ 0 ] = side.z();
+    result[ 3 ][ 0 ] = 0.0f;
+    result[ 0 ][ 1 ] = upVector.x();
+    result[ 1 ][ 1 ] = upVector.y();
+    result[ 2 ][ 1 ] = upVector.z();
+    result[ 3 ][ 1 ] = 0.0f;
+    result[ 0 ][ 2 ] = -forward.x();
+    result[ 1 ][ 2 ] = -forward.y();
+    result[ 2 ][ 2 ] = -forward.z();
+    result[ 3 ][ 2 ] = 0.0f;
+    result[ 0 ][ 3 ] = 0.0f;
+    result[ 1 ][ 3 ] = 0.0f;
+    result[ 2 ][ 3 ] = 0.0f;
+    result[ 3 ][ 3 ] = 1.0f;
+
+    result[ 3 ][ 0 ] += result[ 0 ][ 0 ] * (-from.x()) +
+                        result[ 1 ][ 0 ] * (-from.y()) +
+                        result[ 2 ][ 0 ] * (-from.z());
+    result[ 3 ][ 1 ] += result[ 0 ][ 1 ] * (-from.x()) +
+                        result[ 1 ][ 1 ] * (-from.y()) +
+                        result[ 2 ][ 1 ] * (-from.z());
+    result[ 3 ][ 2 ] += result[ 0 ][ 2 ] * (-from.x()) +
+                        result[ 1 ][ 2 ] * (-from.y()) +
+                        result[ 2 ][ 2 ] * (-from.z());
+    result[ 3 ][ 3 ] += result[ 0 ][ 3 ] * (-from.x()) +
+                        result[ 1 ][ 3 ] * (-from.y()) +
+                        result[ 2 ][ 3 ] * (-from.z());
+
+    return result;
+}
+
+template <typename T>
+matrix4x4<T> matrix4x4<T>::from_quaternion(quaternion quat)
+{
+    matrix4x4<T> result;
+
+    result(0, 0) = 1.0f - 2.0f * (quat.y * quat.y + quat.z * quat.z);
+    result(1, 0) = 2.0f * (quat.x * quat.y + quat.z * quat.w);
+    result(2, 0) = 2.0f * (quat.x * quat.z - quat.y * quat.w);
+    result(3, 0) = 0.0f;
+    result(0, 1) = 2.0f * (quat.x * quat.y - quat.z * quat.w);
+    result(1, 1) = 1.0f - 2.0f * (quat.x * quat.x + quat.z * quat.z);
+    result(2, 1) = 2.0f * (quat.z * quat.y + quat.x * quat.w);
+    result(3, 1) = 0.0f;
+    result(0, 2) = 2.0f * (quat.x * quat.z + quat.y * quat.w);
+    result(1, 2) = 2.0f * (quat.y * quat.z - quat.x * quat.w);
+    result(2, 2) = 1.0f - 2.0f * (quat.x * quat.x + quat.y * quat.y);
+    result(3, 2) = 0.0f;
+    result(0, 3) = 0.0f;
+    result(1, 3) = 0.0f;
+    result(2, 3) = 0.0f;
+    result(3, 3) = 1.0f;
+
     return result;
 }
 

@@ -2,6 +2,7 @@
 #include <QRandomGenerator>
 
 #include "common/matrix.hpp"
+#include "common/quaternion.hpp"
 #include <gtest/gtest.h>
 
 using namespace g::common;
@@ -265,4 +266,25 @@ TEST(matrix, matrix_vector_multiplication)
     EXPECT_FLOAT_EQ(result._data[ 0 ], qresult[ 0 ]);
     EXPECT_FLOAT_EQ(result._data[ 1 ], qresult[ 1 ]);
     EXPECT_FLOAT_EQ(result._data[ 2 ], qresult[ 2 ]);
+}
+
+TEST(matrix, from_look)
+{
+    std::array<float, 3> from, to, up;
+    for (int i = 0; i < 3; ++i)
+    {
+        from[ i ] = QRandomGenerator::global()->generateDouble();
+        to[ i ] = QRandomGenerator::global()->generateDouble();
+        up[ i ] = QRandomGenerator::global()->generateDouble();
+    }
+    matrix4x4f matrix =
+        matrix4x4f::from_look({ from[ 0 ], from[ 1 ], from[ 2 ] },
+                              { to[ 0 ], to[ 1 ], to[ 2 ] },
+                              { up[ 0 ], up[ 1 ], up[ 2 ] });
+    QMatrix4x4 qmatrix;
+    qmatrix.lookAt({ from[ 0 ], from[ 1 ], from[ 2 ] },
+                   { to[ 0 ], to[ 1 ], to[ 2 ] },
+                   { up[ 0 ], up[ 1 ], up[ 2 ] });
+
+    test_matrix_equality(matrix, qmatrix);
 }

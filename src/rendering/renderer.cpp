@@ -1,4 +1,3 @@
-#include <QMatrix4x4>
 #include <QOpenGLFunctions>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLVersionFunctionsFactory>
@@ -235,12 +234,11 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
                               GL_TRUE,
                               _projection_matrix.raw_data());
 
-        QMatrix4x4 model_matrix;
-        model_matrix.setToIdentity();
+        common::matrix4x4f model_matrix = common::matrix4x4f::identity();
         f->glUniformMatrix4fv(render_context->uniforms[ "model" ],
                               1,
                               GL_FALSE,
-                              model_matrix.data());
+                              model_matrix.raw_data());
         std::array<float, 3> position { _view_matrix(0, 3),
                                         _view_matrix(1, 3),
                                         _view_matrix(2, 3) };

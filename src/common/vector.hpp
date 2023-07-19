@@ -45,6 +45,29 @@ struct vector3
     }
 
     std::array<float, 3> as_array() const { return { x(), y(), z() }; }
+
+    vector3 operator+(vector3 const& other) const
+    {
+        return vector3(x() + other.x(), y() + other.y(), z() + other.z());
+    }
+
+    vector3 operator-(vector3 const& other) const
+    {
+        return vector3(x() - other.x(), y() - other.y(), z() - other.z());
+    }
+
+    float operator*(vector3 const& other) const
+    {
+        // calculate the dot product
+        return x() * other.x() + y() * other.y() + z() * other.z();
+    }
+
+    vector3 cross(vector3 const& other) const
+    {
+        return vector3(y() * other.z() - z() * other.y(),
+                       z() * other.x() - x() * other.z(),
+                       x() * other.y() - y() * other.x());
+    }
 };
 
 struct vector2
