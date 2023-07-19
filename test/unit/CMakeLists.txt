@@ -13,7 +13,9 @@ FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
 
-add_executable(unittest main.cpp object.cpp)
-target_link_libraries(unittest gtest gmock stdafx g::project)
+find_package(Qt6 REQUIRED Gui)
+
+add_executable(unittest test_main.cpp object.cpp test_matrix.cpp)
+target_link_libraries(unittest gtest gmock Qt::Gui stdafx g::project)
 target_precompile_headers(unittest REUSE_FROM stdafx)
 gtest_discover_tests(unittest)

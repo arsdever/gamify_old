@@ -24,12 +24,12 @@ namespace g::rendering
 
 renderer::~renderer() = default;
 
-void renderer::set_projection_matrix(common::matrix4x4 projection_matrix)
+void renderer::set_projection_matrix(common::matrix4x4f projection_matrix)
 {
     _projection_matrix = std::move(projection_matrix);
 }
 
-void renderer::set_view_matrix(common::matrix4x4 view_matrix)
+void renderer::set_view_matrix(common::matrix4x4f view_matrix)
 {
     _view_matrix = std::move(view_matrix);
 }
@@ -229,11 +229,11 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
         f->glUniformMatrix4fv(render_context->uniforms[ "view" ],
                               1,
                               GL_FALSE,
-                              _view_matrix.data.data());
+                              _view_matrix.raw_data());
         f->glUniformMatrix4fv(render_context->uniforms[ "projection" ],
                               1,
-                              GL_FALSE,
-                              _projection_matrix.data.data());
+                              GL_TRUE,
+                              _projection_matrix.raw_data());
 
         QMatrix4x4 model_matrix;
         model_matrix.setToIdentity();
@@ -241,9 +241,9 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
                               1,
                               GL_FALSE,
                               model_matrix.data());
-        std::array<float, 3> position = { _view_matrix.data[ 3 ],
-                                          _view_matrix.data[ 7 ],
-                                          _view_matrix.data[ 11 ] };
+        std::array<float, 3> position { _view_matrix(0, 3),
+                                        _view_matrix(1, 3),
+                                        _view_matrix(2, 3) };
         f->glUniform3fv(
             f->glGetUniformLocation(render_context->program, "view_position"),
             1,

@@ -21,6 +21,7 @@ logger_ptr get_logger(std::string_view name, bool is_dummy)
         return logger;
 
     logger = std::make_shared<spdlog::logger>(name_str);
+    logger->set_level(spdlog::level::info);
 
     if (!is_dummy)
     {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/vector.hpp"
+#include "common/quaternion.hpp"
 #include "project/component.hpp"
 
 namespace g::project
@@ -23,15 +24,15 @@ public:
 	common::vector3 const& position() const;
 	void set_position(common::vector3 const& position);
 
-	common::vector3 const& rotation() const;
-	void set_rotation(common::vector3 const& rotation);
+	common::quaternion const& rotation() const;
+	void set_rotation(common::quaternion const& rotation);
 
 	common::vector3 const& scale() const;
 	void set_scale(common::vector3 const& scale);
 
 private:
 	common::vector3 _position;
-	common::vector3 _rotation;
+	common::quaternion _rotation;
 	common::vector3 _scale;
 };
 

@@ -29,23 +29,11 @@ void CameraView::setCamera(std::shared_ptr<project::camera_component> camera)
 {
     _camera = camera;
 
-    QMatrix4x4 projection;
-    QMatrix4x4 view;
+    _projection = common::matrix4x4f::perspective(
+        45.0f, width() / height(), 0.1f, 100.0f);
 
-    projection.setToIdentity();
-    projection.perspective(45.0f, width() / height(), 0.1f, 100.0f);
-
-    view.setToIdentity();
-    auto position = camera->object()->transform()->position();
-    view.lookAt(QVector3D(static_cast<float>(position.x),
-                          static_cast<float>(position.y),
-                          static_cast<float>(position.z)),
-                QVector3D(0, 0, 0),
-                QVector3D(0, 1, 0));
-
-    std::copy(
-        projection.data(), projection.data() + 16, _projection.data.data());
-    std::copy(view.data(), view.data() + 16, _view.data.data());
+    recalculateViewMatrix();
+    update();
 }
 
 std::shared_ptr<project::camera_component> CameraView::camera() const
@@ -57,26 +45,12 @@ void CameraView::initializeGL() { Viewport::initializeGL(); }
 
 void CameraView::resizeGL(int w, int h)
 {
-    QMatrix4x4 projection;
-    QMatrix4x4 view;
-
-    projection.setToIdentity();
-    projection.perspective(
+    _projection = common::matrix4x4f::perspective(
         20.0f, static_cast<float>(w) / static_cast<float>(h), 0.1f, 100.0f);
 
-    view.setToIdentity();
-    auto position = _camera->object()->transform()->position();
-
-    view.lookAt(QVector3D(static_cast<float>(position.x),
-                          static_cast<float>(position.y),
-                          static_cast<float>(position.z)),
-                QVector3D(0, 0, 0),
-                QVector3D(0, 1, 0));
-
-    std::copy(
-        projection.data(), projection.data() + 16, _projection.data.data());
-    std::copy(view.data(), view.data() + 16, _view.data.data());
     _label->resize(w, h);
+
+    recalculateViewMatrix();
 
     Viewport::resizeGL(w, h);
 }
@@ -93,52 +67,29 @@ void CameraView::mousePressEvent(QMouseEvent* event)
     update();
 }
 
-void CameraView::mouseMoveEvent(QMouseEvent* event)
+void CameraView::mouseMoveEvent(QMouseEvent* event) { }
+
+void CameraView::mouseReleaseEvent(QMouseEvent* event) { }
+
+void CameraView::wheelEvent(QWheelEvent* event) { }
+
+void CameraView::recalculateViewMatrix()
 {
-    if (event->buttons() & Qt::MouseButton::MiddleButton)
-    {
-        auto delta = event->pos() - _last_mouse_pos;
-        _last_mouse_pos = event->pos();
+    QMatrix4x4 view;
+    view.setToIdentity();
 
-        QMatrix4x4 view { _view.data.data() };
-        view.translate(delta.x() / 100.0f, delta.y() / 100.0f, 0);
-        std::copy(view.data(), view.data() + 16, _view.data.data());
-        auto transform = _camera->object()->transform();
-        transform->set_position(common::vector3 {
-            view.column(3).x(), view.column(3).y(), view.column(3).z() });
-        _label->setText(tr("pos: (%1,%2,%3) delta: (%4,%5)")
-                            .arg(QString::number(view.column(3).x()))
-                            .arg(QString::number(view.column(3).y()))
-                            .arg(QString::number(view.column(3).z()))
-                            .arg(QString::number(delta.x()))
-                            .arg(QString::number(delta.y())));
-    }
-    update();
-}
+    auto position = _camera->object()->transform()->position();
+    auto rotation = _camera->object()->transform()->rotation();
 
-void CameraView::mouseReleaseEvent(QMouseEvent* event)
-{
-    if (event->button() == Qt::MouseButton::MiddleButton)
-    {
-        setCursor(Qt::ArrowCursor);
-    }
-    update();
-}
+    QVector3D qposition(position.x(), position.y(), position.z());
+    QQuaternion qrotation(rotation.w, rotation.x, rotation.y, rotation.z);
+    QVector3D forward =
+        qrotation.rotatedVector(QVector3D(0, 0, 1)).normalized();
+    QVector3D up = qrotation.rotatedVector(QVector3D(0, 1, 0)).normalized();
 
-void CameraView::wheelEvent(QWheelEvent* event)
-{
-    auto transform = _camera->object()->transform();
-
-    QMatrix4x4 view { _view.data.data() };
-    auto delta = event->angleDelta().y() / 120.0f;
-    view.translate(0, 0, delta);
-    std::copy(view.data(), view.data() + 16, _view.data.data());
-    transform->set_position(common::vector3 {
-        view.column(3).x(), view.column(3).y(), view.column(3).z() });
-    _label->setText(QString::number(view.column(3).x()) + "\n" +
-                    QString::number(view.column(3).y()) + "\n" +
-                    QString::number(view.column(3).z()) + "\n");
-    update();
+    // view.lookAt(qposition, qposition + forward, up);
+    view.lookAt(qposition, { 0, 0, 0 }, { 0, 1, 0 });
+    _view = common::matrix4x4f::from_raw_data(view.data());
 }
 
 } // namespace g::viewport

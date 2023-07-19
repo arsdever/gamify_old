@@ -49,8 +49,8 @@ protected:
     std::shared_ptr<project::scene> _scene;
     std::function<void()> _onInitialized;
 
-    common::matrix4x4 _projection;
-    common::matrix4x4 _view;
+    common::matrix4x4f _projection;
+    common::matrix4x4f _view;
 };
 
 } // namespace g::viewport

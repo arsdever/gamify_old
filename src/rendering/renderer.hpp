@@ -3,11 +3,6 @@
 #include "common/matrix.hpp"
 #include "g_rendering_export.hpp"
 
-namespace g::common
-{
-struct matrix4x4;
-} // namespace g::common
-
 namespace g::project
 {
 class renderer_component;
@@ -31,12 +26,12 @@ public:
     virtual void
     load_object(std::shared_ptr<project::renderer_component> renderer) = 0;
 
-    void set_projection_matrix(common::matrix4x4 projectionMatrix);
-    void set_view_matrix(common::matrix4x4 viewMatrix);
+    void set_projection_matrix(common::matrix4x4f projectionMatrix);
+    void set_view_matrix(common::matrix4x4f viewMatrix);
 
 protected:
-    common::matrix4x4 _projection_matrix;
-    common::matrix4x4 _view_matrix;
+    common::matrix4x4f _projection_matrix;
+    common::matrix4x4f _view_matrix;
 };
 
 } // namespace g::rendering
