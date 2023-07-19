@@ -1,5 +1,3 @@
-#include <stdafx>
-
 #include "project/project.hpp"
 
 #include "common/logger.hpp"

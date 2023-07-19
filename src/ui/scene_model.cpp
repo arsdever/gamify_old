@@ -1,5 +1,3 @@
-#include <stdafx>
-
 #include "ui/scene_model.hpp"
 
 #include "project/object.hpp"

@@ -394,7 +394,7 @@ matrix4x4<T> matrix4x4<T>::perspective(fov_t fov,
 
 template <typename T>
 template <typename dimension_t, typename near_plane_t, typename far_plane_t>
-static matrix4x4<T> matrix4x4<T>::orthographic(dimension_t width,
+matrix4x4<T> matrix4x4<T>::orthographic(dimension_t width,
                                                dimension_t height,
                                                near_plane_t near_plane,
                                                far_plane_t far_plane)

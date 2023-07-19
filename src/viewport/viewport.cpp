@@ -2,7 +2,6 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLVersionFunctionsFactory>
-#include <stdafx>
 
 #include "viewport/viewport.hpp"
 
@@ -15,7 +14,6 @@
 
 namespace g::viewport
 {
-
 namespace
 {
 common::logger_ptr logger = common::get_logger("viewport");

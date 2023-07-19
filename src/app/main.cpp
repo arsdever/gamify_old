@@ -1,6 +1,6 @@
-#include <qsettings>
-#include <qstylefactory>
-#include <stdafx_qt>
+#include <QApplication>
+#include <QSettings>
+#include <QStyleFactory>
 
 #include "common/logger.hpp"
 #include "spdlog/details/registry.h"
@@ -52,6 +52,7 @@ int main(int argc, char** argv)
 {
     Q_INIT_RESOURCE(qspdlog_resources);
 
+    configureColorScheme();
     g::common::configure_logger(argc, argv);
     QApplication app(argc, argv);
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QMainWindow>
+
 class QPlainTextEdit;
 
 namespace g::project

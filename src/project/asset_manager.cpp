@@ -1,5 +1,6 @@
 #include <fstream>
 #include <png.h>
+#include <stdio.h>
 
 #include "project/asset_manager.hpp"
 

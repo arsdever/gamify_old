@@ -1,10 +1,11 @@
+#include <QDockWidget>
 #include <QFileDialog>
 #include <QListView>
+#include <QMenuBar>
 #include <QPlainTextEdit>
 #include <QTabWidget>
 #include <QToolBar>
 #include <QToolButton>
-#include <stdafx_qt>
 
 #include "ui/main_window.hpp"
 

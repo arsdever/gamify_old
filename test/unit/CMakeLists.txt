@@ -16,6 +16,5 @@ include(GoogleTest)
 find_package(Qt6 REQUIRED Gui)
 
 add_executable(unittest test_main.cpp object.cpp test_matrix.cpp)
-target_link_libraries(unittest gtest gmock Qt::Gui stdafx g::project)
-target_precompile_headers(unittest REUSE_FROM stdafx)
+target_link_libraries(unittest gtest gmock Qt::Gui g::project)
 gtest_discover_tests(unittest)

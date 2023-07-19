@@ -23,4 +23,3 @@ target_link_libraries(
          g::project
          g::viewport
          qspdlog::lib)
-target_precompile_headers(g_ui REUSE_FROM stdafx_qt)

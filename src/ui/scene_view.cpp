@@ -1,17 +1,15 @@
-#include <stdafx_qt>
+
+#include <QMenu>
 
 #include "ui/scene_view.hpp"
 
+#include "project/object.hpp"
+#include "project/project.hpp"
+#include "project/scene.hpp"
 #include "ui/scene_model.hpp"
-#include <project/object.hpp>
-#include <project/project.hpp>
-#include <project/scene.hpp>
 
 namespace g::ui
 {
-
-// TODO: Improve counting of the unnamed objects
-static int object_index = 0;
 
 SceneView::SceneView(std::shared_ptr<project::scene> scene, QWidget* parent)
     : QTreeView { parent }

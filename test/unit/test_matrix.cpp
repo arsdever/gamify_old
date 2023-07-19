@@ -260,7 +260,7 @@ TEST(matrix, matrix_vector_multiplication)
     }
 
     vector3 result = matrix * vector._data;
-    QVector3D qresult = qmatrix * qvector;
+    QVector3D qresult = qmatrix.map(qvector);
 
     EXPECT_FLOAT_EQ(result._data[ 0 ], qresult[ 0 ]);
     EXPECT_FLOAT_EQ(result._data[ 1 ], qresult[ 1 ]);

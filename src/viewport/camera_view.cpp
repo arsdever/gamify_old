@@ -83,9 +83,6 @@ void CameraView::recalculateViewMatrix()
 
     QVector3D qposition(position.x(), position.y(), position.z());
     QQuaternion qrotation(rotation.w, rotation.x, rotation.y, rotation.z);
-    QVector3D forward =
-        qrotation.rotatedVector(QVector3D(0, 0, 1)).normalized();
-    QVector3D up = qrotation.rotatedVector(QVector3D(0, 1, 0)).normalized();
 
     // view.lookAt(qposition, qposition + forward, up);
     view.lookAt(qposition, { 0, 0, 0 }, { 0, 1, 0 });
