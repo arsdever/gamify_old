@@ -25,12 +25,12 @@ transform_component::create(std::shared_ptr<class object> parent)
 
 std::string transform_component::type() { return "transform"; }
 
-common::vector3 const& transform_component::position() const
+common::vector3f const& transform_component::position() const
 {
     return _position;
 }
 
-void transform_component::set_position(common::vector3 const& position)
+void transform_component::set_position(common::vector3f const& position)
 {
     _position = position;
 }
@@ -45,9 +45,9 @@ void transform_component::set_rotation(common::quaternion const& rotation)
     _rotation = rotation;
 }
 
-common::vector3 const& transform_component::scale() const { return _scale; }
+common::vector3f const& transform_component::scale() const { return _scale; }
 
-void transform_component::set_scale(common::vector3 const& scale)
+void transform_component::set_scale(common::vector3f const& scale)
 {
     _scale = scale;
 }

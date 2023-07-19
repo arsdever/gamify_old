@@ -15,8 +15,8 @@ class mesh : public asset
 public:
     using vertex_t = struct
     {
-        common::vector3 position;
-        common::vector3 normal;
+        common::vector3f position;
+        common::vector3f normal;
         common::vector2 uv;
     };
     using vertices_t = std::vector<vertex_t>;

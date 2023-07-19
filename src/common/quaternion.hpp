@@ -23,12 +23,12 @@ struct quaternion
         w /= length;
     }
 
-    static quaternion look_rotation(vector3 from, vector3 to)
+    static quaternion look_rotation(vector3f from, vector3f to)
     {
-        vector3 forward = from - to;
+        vector3f forward = from - to;
         forward.normalize();
 
-        float dot = vector3 { 0, 0, 1 } * forward;
+        float dot = vector3f { 0, 0, 1 }.dot(forward);
 
         if (std::abs(dot - (-1.0f)) < 0.000001f)
         {
@@ -40,12 +40,12 @@ struct quaternion
         }
 
         float rotAngle = (float)std::acos(dot);
-        vector3 rotAxis = vector3 { 0, 0, 1 }.cross(forward);
+        vector3f rotAxis = vector3f { 0, 0, 1 }.cross(forward);
         rotAxis.normalize();
         return from_axis_angle(rotAxis, rotAngle);
     }
 
-    static quaternion from_axis_angle(vector3 axis, float angle)
+    static quaternion from_axis_angle(vector3f axis, float angle)
     {
         float halfAngle = angle * .5f;
         float s = (float)std::sin(halfAngle);

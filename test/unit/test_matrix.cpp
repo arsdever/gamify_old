@@ -243,12 +243,12 @@ TEST(matrix, scalar_division)
 TEST(matrix, matrix_vector_multiplication)
 {
     matrix4x4f matrix;
-    vector3 vector;
+    vector3f vector;
     QMatrix4x4 qmatrix;
     QVector3D qvector;
     for (int i = 0; i < 3; ++i)
     {
-        vector._data[ i ] = qvector[ i ] =
+        vector.as_array()[ i ] = qvector[ i ] =
             QRandomGenerator::global()->generateDouble();
     }
     for (int i = 0; i < 4; ++i)
@@ -260,12 +260,12 @@ TEST(matrix, matrix_vector_multiplication)
         }
     }
 
-    vector3 result = matrix * vector._data;
+    vector3f result = matrix * vector.as_array();
     QVector3D qresult = qmatrix.map(qvector);
 
-    EXPECT_FLOAT_EQ(result._data[ 0 ], qresult[ 0 ]);
-    EXPECT_FLOAT_EQ(result._data[ 1 ], qresult[ 1 ]);
-    EXPECT_FLOAT_EQ(result._data[ 2 ], qresult[ 2 ]);
+    EXPECT_FLOAT_EQ(result.as_array()[ 0 ], qresult[ 0 ]);
+    EXPECT_FLOAT_EQ(result.as_array()[ 1 ], qresult[ 1 ]);
+    EXPECT_FLOAT_EQ(result.as_array()[ 2 ], qresult[ 2 ]);
 }
 
 TEST(matrix, from_look)
@@ -278,9 +278,9 @@ TEST(matrix, from_look)
         up[ i ] = QRandomGenerator::global()->generateDouble();
     }
     matrix4x4f matrix =
-        matrix4x4f::from_look({ from[ 0 ], from[ 1 ], from[ 2 ] },
-                              { to[ 0 ], to[ 1 ], to[ 2 ] },
-                              { up[ 0 ], up[ 1 ], up[ 2 ] });
+        matrix4x4f::from_look(vector3f { from[ 0 ], from[ 1 ], from[ 2 ] },
+                              vector3f { to[ 0 ], to[ 1 ], to[ 2 ] },
+                              vector3f { up[ 0 ], up[ 1 ], up[ 2 ] });
     QMatrix4x4 qmatrix;
     qmatrix.lookAt({ from[ 0 ], from[ 1 ], from[ 2 ] },
                    { to[ 0 ], to[ 1 ], to[ 2 ] },

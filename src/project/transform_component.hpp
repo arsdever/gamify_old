@@ -21,19 +21,19 @@ public:
     create(std::shared_ptr<class object> parent);
 	static std::string type();
 
-	common::vector3 const& position() const;
-	void set_position(common::vector3 const& position);
+	common::vector3f const& position() const;
+	void set_position(common::vector3f const& position);
 
 	common::quaternion const& rotation() const;
 	void set_rotation(common::quaternion const& rotation);
 
-	common::vector3 const& scale() const;
-	void set_scale(common::vector3 const& scale);
+	common::vector3f const& scale() const;
+	void set_scale(common::vector3f const& scale);
 
 private:
-	common::vector3 _position;
+	common::vector3f _position;
 	common::quaternion _rotation;
-	common::vector3 _scale;
+	common::vector3f _scale;
 };
 
 } // namespace g::project

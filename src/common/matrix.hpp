@@ -9,7 +9,7 @@
 namespace g::common
 {
 
-template <typename T>
+template <is_scalar T>
 class matrix4x4
 {
 #pragma region static
@@ -65,7 +65,9 @@ public:
      */
     static matrix4x4<T> from_raw_data(const T* data);
 
-    static matrix4x4<T> from_look(vector3 from, vector3 to, vector3 up);
+    template <is_scalar U>
+    static matrix4x4<T>
+    from_look(vector3<U> from, vector3<U> to, vector3<U> up);
 
     /**
      * @brief Get the matrix from a quaternion.
@@ -355,7 +357,7 @@ private:
     std::array<T, 16> _data;
 };
 
-template <typename T>
+template <is_scalar T>
 matrix4x4<T> matrix4x4<T>::identity()
 {
     matrix4x4<T> result;
@@ -366,13 +368,13 @@ matrix4x4<T> matrix4x4<T>::identity()
     return result;
 }
 
-template <typename T>
+template <is_scalar T>
 matrix4x4<T> matrix4x4<T>::zero()
 {
     return {};
 }
 
-template <typename T>
+template <is_scalar T>
 template <typename fov_t,
           typename aspect_t,
           typename near_plane_t,
@@ -402,7 +404,7 @@ matrix4x4<T> matrix4x4<T>::perspective(fov_t fov,
     return result;
 }
 
-template <typename T>
+template <is_scalar T>
 template <typename dimension_t, typename near_plane_t, typename far_plane_t>
 matrix4x4<T> matrix4x4<T>::orthographic(dimension_t width,
                                         dimension_t height,
@@ -427,8 +429,10 @@ matrix4x4<T> matrix4x4<T>::orthographic(dimension_t width,
     return result;
 }
 
-template <typename T>
-matrix4x4<T> matrix4x4<T>::from_look(vector3 from, vector3 to, vector3 up)
+template <is_scalar T>
+template <is_scalar U>
+matrix4x4<T>
+matrix4x4<T>::from_look(vector3<U> from, vector3<U> to, vector3<U> up)
 {
     vector3 forward = to - from;
     // TODO: if forward is null return
@@ -472,7 +476,7 @@ matrix4x4<T> matrix4x4<T>::from_look(vector3 from, vector3 to, vector3 up)
     return result;
 }
 
-template <typename T>
+template <is_scalar T>
 matrix4x4<T> matrix4x4<T>::from_quaternion(quaternion quat)
 {
     matrix4x4<T> result;
@@ -497,7 +501,7 @@ matrix4x4<T> matrix4x4<T>::from_quaternion(quaternion quat)
     return result;
 }
 
-template <typename T>
+template <is_scalar T>
 matrix4x4<T> matrix4x4<T>::from_raw_data(const T* data)
 {
     matrix4x4<T> result;
@@ -505,7 +509,7 @@ matrix4x4<T> matrix4x4<T>::from_raw_data(const T* data)
     return result;
 }
 
-template <typename T, is_scalar U>
+template <is_scalar T, is_scalar U>
 matrix4x4<T> operator+(U scalar, matrix4x4<T> matrix)
 {
     std::for_each(matrix.begin(),
@@ -514,7 +518,7 @@ matrix4x4<T> operator+(U scalar, matrix4x4<T> matrix)
     return matrix;
 }
 
-template <typename T, is_scalar U>
+template <is_scalar T, is_scalar U>
 matrix4x4<T> operator-(U scalar, matrix4x4<T> matrix)
 {
     std::for_each(matrix.begin(),
@@ -523,7 +527,7 @@ matrix4x4<T> operator-(U scalar, matrix4x4<T> matrix)
     return matrix;
 }
 
-template <typename T, is_scalar U>
+template <is_scalar T, is_scalar U>
 matrix4x4<T> operator*(U scalar, matrix4x4<T> matrix)
 {
     std::for_each(matrix.begin(),
@@ -532,7 +536,7 @@ matrix4x4<T> operator*(U scalar, matrix4x4<T> matrix)
     return matrix;
 }
 
-template <typename T, is_scalar U>
+template <is_scalar T, is_scalar U>
 matrix4x4<T> operator/(U scalar, matrix4x4<T> matrix)
 {
     std::for_each(matrix.begin(),
