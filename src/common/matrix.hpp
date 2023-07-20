@@ -353,6 +353,49 @@ public:
         return result;
     }
 
+#pragma region Transform operations
+
+public:
+    void set_position(vector3<T> position)
+    {
+        (*this)(0, 3) = position.x();
+        (*this)(1, 3) = position.y();
+        (*this)(2, 3) = position.z();
+    }
+
+    void translate(vector3<T> translation)
+    {
+        (*this)(0, 3) += translation.x();
+        (*this)(1, 3) += translation.y();
+        (*this)(2, 3) += translation.z();
+    }
+
+    void set_rotation(quaternion rotation)
+    {
+        *this = from_quaternion(rotation);
+    }
+
+    void rotate(quaternion rotation)
+    {
+        *this *= from_quaternion(rotation);
+    }
+
+    void set_scale(vector3<T> scale)
+    {
+        (*this)(0, 0) = scale.x();
+        (*this)(1, 1) = scale.y();
+        (*this)(2, 2) = scale.z();
+    }
+
+    void scale(vector3<T> scale)
+    {
+        (*this)(0, 0) *= scale.x();
+        (*this)(1, 1) *= scale.y();
+        (*this)(2, 2) *= scale.z();
+    }
+
+#pragma endregion
+
 private:
     std::array<T, 16> _data;
 };
