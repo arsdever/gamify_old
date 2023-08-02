@@ -18,6 +18,7 @@ class G_RENDERING_EXPORT renderer
 public:
     virtual ~renderer() = 0;
 
+    virtual void resize(int width, int height);
     void setResourceManager(
         std::shared_ptr<project::resource_manager> resourceManager);
     virtual void initialize() = 0;
@@ -30,6 +31,8 @@ public:
     void set_view_matrix(common::matrix4x4f viewMatrix);
 
 protected:
+    int _width;
+    int _height;
     common::matrix4x4f _projection_matrix;
     common::matrix4x4f _view_matrix;
 };

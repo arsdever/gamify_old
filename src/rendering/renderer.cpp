@@ -23,6 +23,12 @@ namespace g::rendering
 
 renderer::~renderer() = default;
 
+void renderer::resize(int width, int height)
+{
+    _width = width;
+    _height = height;
+}
+
 void renderer::set_projection_matrix(common::matrix4x4f projection_matrix)
 {
     _projection_matrix = std::move(projection_matrix);
@@ -73,14 +79,17 @@ public:
     renderer();
     ~renderer() override;
 
+    void resize(int width, int height) override;
     void initialize() override;
     void render(std::shared_ptr<project::renderer_component> renderer) override;
     virtual void
     load_object(std::shared_ptr<project::renderer_component> renderer) override;
 
 private:
-    QOpenGLFunctions_3_3_Core* checkAndGetGLFunctions();
+    void initializeGLFunctions();
 
+private:
+    QOpenGLFunctions_3_3_Core* f;
     unsigned modelViewProjectionShader;
     unsigned lightingFragmentShader;
     unsigned default_vert;
@@ -93,12 +102,20 @@ renderer::renderer() = default;
 
 renderer::~renderer() = default;
 
+void renderer::resize(int width, int height)
+{
+    initializeGLFunctions();
+    f->glViewport(0, 0, width, height);
+    ::g::rendering::renderer::resize(width, height);
+}
+
 void renderer::initialize()
 {
+    initializeGLFunctions();
     logger->debug("Initializing renderer");
 
-    auto* f = checkAndGetGLFunctions();
-
+    initializeGLFunctions();
+    f->glClearColor(0.0f, 0.06f, 0.1f, 1.0f);
     f->glEnable(GL_DEPTH_TEST);
 
     std::string error_log;
@@ -185,7 +202,8 @@ void renderer::initialize()
 
 void renderer::render(std::shared_ptr<project::renderer_component> renderer)
 {
-    auto* f = checkAndGetGLFunctions();
+    initializeGLFunctions();
+    f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (renderer->enabled())
     {
         auto render_context =
@@ -205,7 +223,7 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
                 render_context->program, property.first.c_str());
             if (propertyLocation == -1)
             {
-                logger->warn("Could not find uniform {}", property.first);
+                // logger->warn("Could not find uniform {}", property.first);
                 continue;
             }
 
@@ -258,7 +276,7 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
 void renderer::load_object(
     std::shared_ptr<project::renderer_component> renderer)
 {
-    auto* f = checkAndGetGLFunctions();
+    initializeGLFunctions();
     auto* context = new opengl_3_3_render_context();
 
     auto mesh = renderer->mesh();
@@ -424,19 +442,17 @@ void renderer::load_object(
         std::unique_ptr<project::render_context>(context));
 }
 
-QOpenGLFunctions_3_3_Core* renderer::checkAndGetGLFunctions()
+void renderer::initializeGLFunctions()
 {
     logger->debug("Trying to get OpenGL 3.3 functions");
-    QOpenGLFunctions_3_3_Core* f =
-        QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(
-            QOpenGLContext::currentContext());
+    f = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(
+        QOpenGLContext::currentContext());
 
     if (!f)
     {
         logger->error("OpenGL functions are not available");
         throw std::runtime_error("OpenGL functions are not available");
     }
-    return f;
 }
 
 } // namespace impl

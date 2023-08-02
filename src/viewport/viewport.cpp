@@ -1,15 +1,17 @@
+#include <QEvent>
 #include <QLibrary>
-#include <QOpenGLFunctions>
-#include <QOpenGLFunctions_3_3_Core>
-#include <QOpenGLVersionFunctionsFactory>
+#include <QOpenGLContext>
+#include <QResizeEvent>
 
 #include "viewport/viewport.hpp"
 
 #include "common/logger.hpp"
 #include "common/profiler.hpp"
+#include "project/camera_component.hpp"
 #include "project/renderer_component.hpp"
 #include "project/resource_manager.hpp"
 #include "project/scene.hpp"
+#include "project/transform_component.hpp"
 #include "rendering/renderer.hpp"
 
 namespace g::viewport
@@ -19,15 +21,35 @@ namespace
 common::logger_ptr logger = common::get_logger("viewport");
 }
 
-Viewport::Viewport(QWidget* parent)
-    : QOpenGLWidget(parent)
-    , _renderer_lib(nullptr)
+Viewport::Viewport()
+    : _renderer_lib(nullptr)
     , _renderer(nullptr, nullptr)
 {
+    setSurfaceType(QSurface::OpenGLSurface);
     _renderer->setResourceManager(project::resource_manager::get());
 }
 
 Viewport::~Viewport() = default;
+
+void Viewport::setCamera(std::shared_ptr<project::camera_component> camera)
+{
+    _camera = camera;
+
+    if (height())
+        _projection = common::matrix4x4f::perspective(
+            45.0f,
+            static_cast<float>(width()) / static_cast<float>(height()),
+            0.1f,
+            100.0f);
+
+    recalculateViewMatrix();
+    renderLater();
+}
+
+std::shared_ptr<project::camera_component> Viewport::camera() const
+{
+    return _camera;
+}
 
 void Viewport::onInitialized(std::function<void()> onInitialized)
 {
@@ -69,14 +91,29 @@ void Viewport::loadScene(std::shared_ptr<project::scene> scene)
     }
 }
 
-void Viewport::initializeGL()
+void Viewport::initialize()
 {
     common::profile(__FUNCTION__);
-    makeCurrent();
+    QSurfaceFormat format;
+    format.setVersion(3, 3);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setSamples(16);
+    setFormat(format);
 
-    auto* f = checkAndGetGLFunctions();
-    // set default background some bluish color
-    f->glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    if (!_context)
+    {
+        _context = new QOpenGLContext(this);
+        _context->setFormat(requestedFormat());
+        _context->create();
+    }
+    _context->makeCurrent(this);
+
+    if (!_needsInitialize)
+    {
+        return;
+    }
+
+    _needsInitialize = false;
     _renderer_lib = new QLibrary("g_rendering.dll");
     if (!_renderer_lib->load())
     {
@@ -99,20 +136,50 @@ void Viewport::initializeGL()
     }
 }
 
-void Viewport::resizeGL(int w, int h)
+bool Viewport::event(QEvent* event)
 {
-    common::profile(__FUNCTION__);
-    makeCurrent();
-    auto* f = checkAndGetGLFunctions();
-    f->glViewport(0, 0, w, h);
+    switch (event->type())
+    {
+    case QEvent::Expose: initialize();
+    case QEvent::UpdateRequest:
+    {
+        if (isExposed())
+            render();
+
+        return true;
+    }
+    case QEvent::Resize:
+    {
+        if (!_renderer)
+        {
+            return false;
+        }
+
+        common::profile(__FUNCTION__);
+        QResizeEvent* resizeEvent = static_cast<QResizeEvent*>(event);
+        _renderer->resize(resizeEvent->size().width(),
+                          resizeEvent->size().height());
+        _projection = common::matrix4x4f::perspective(
+            45.0f,
+            static_cast<float>(width()) / static_cast<float>(height()),
+            0.1f,
+            100.0f);
+        renderLater();
+        break;
+    }
+    default: break;
+    }
+
+    return QWindow::event(event);
 }
 
-void Viewport::paintGL()
+void Viewport::renderLater() { requestUpdate(); }
+
+void Viewport::render()
 {
     common::profile(__FUNCTION__);
-    makeCurrent();
-    auto* f = checkAndGetGLFunctions();
-    f->glClear(GL_COLOR_BUFFER_BIT);
+
+    _context->makeCurrent(this);
 
     _renderer->set_projection_matrix(_projection);
     _renderer->set_view_matrix(_view);
@@ -142,28 +209,16 @@ void Viewport::paintGL()
         }
     }
 
+    _context->swapBuffers(this);
+
     logger->debug("Viewport painted");
+    renderLater();
 }
 
-QOpenGLFunctions_3_3_Core* Viewport::checkAndGetGLFunctions()
+void Viewport::recalculateViewMatrix()
 {
-    logger->debug("Trying to get OpenGL 3.3 functions");
-    QOpenGLFunctions_3_3_Core* f =
-        QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(
-            context());
-    // if (f)
-    // {
-    //     logger->info("OpenGL 3.3 functions are available");
-    //     return f;
-    // }
-
-    // f = QOpenGLContext::currentContext()->functions();
-    if (!f)
-    {
-        logger->error("OpenGL functions are not available");
-        throw std::runtime_error("OpenGL functions are not available");
-    }
-    return f;
+    auto position = _camera->object()->transform()->position();
+    _view = common::matrix4x4f::from_look(position, { 0, 0, 0 }, { 0, 1, 0 });
 }
 
 } // namespace g::viewport

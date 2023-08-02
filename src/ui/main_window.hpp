@@ -3,6 +3,7 @@
 #include <QMainWindow>
 
 class QPlainTextEdit;
+class QWindow;
 
 namespace g::project
 {
@@ -35,7 +36,7 @@ private:
     // ui::AssetManager* _assetManager;
 
     QWidget* _sceneWidget;
-    QWidget* _viewport;
+    QWindow* _viewport;
 
     QWidget* _shaderEditor;
     QPlainTextEdit* _vertexShaderEditor;

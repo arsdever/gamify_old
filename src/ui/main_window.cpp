@@ -19,8 +19,6 @@
 #include "project/scene.hpp"
 #include "project/transform_component.hpp"
 #include "qspdlog/qspdlog.hpp"
-#include "viewport/camera_view.hpp"
-// #include "ui/asset_manager.hpp"
 #include "common/logger.hpp"
 #include "project/asset.hpp"
 #include "project/asset_manager.hpp"
@@ -53,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
     initializeDockWidgets();
 
     _project->add_scene(_scene);
-    setCentralWidget(_viewport);
+    setCentralWidget(QWidget::createWindowContainer(_viewport));
 
     auto rootObject = project::object::create("Dummy object");
     _scene->add_object(rootObject);
@@ -92,7 +90,7 @@ MainWindow::MainWindow(QWidget* parent)
             object->get_component<project::camera_component>();
         if (cameraComponent)
         {
-            viewport::CameraView* view = new viewport::CameraView;
+            viewport::Viewport* view = new viewport::Viewport;
             qobject_cast<viewport::Viewport*>(view)->onInitialized(
                 [ this, view ]() {
                 qobject_cast<viewport::Viewport*>(view)->loadScene(_scene);
