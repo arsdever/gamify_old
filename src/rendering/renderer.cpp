@@ -74,6 +74,12 @@ struct opengl_3_3_render_context : public project::render_context
     std::unordered_map<std::string, unsigned> attributes;
 };
 
+enum class shader_type
+{
+    vertex,
+    fragment
+};
+
 class renderer : public ::g::rendering::renderer
 {
 public:
@@ -88,6 +94,10 @@ public:
 
 private:
     void initializeGLFunctions();
+    unsigned create_shader(std::string_view source, shader_type type);
+    unsigned create_program(std::vector<std::string_view> vertex_shaders,
+                            std::vector<std::string_view> fragment_shaders);
+    std::string load_shader_file(std::string_view path);
 
 private:
     QOpenGLFunctions_3_3_Core* f;
@@ -119,138 +129,20 @@ void renderer::initialize()
 
     initializeGLFunctions();
     f->glClearColor(0.0f, 0.06f, 0.1f, 1.0f);
-    f->glEnable(GL_DEPTH_TEST);
 
-    std::string error_log;
-    int error_state;
-    error_log.resize(512);
+    modelViewProjectionShader =
+        create_shader(load_shader_file("projection.vert"), shader_type::vertex);
 
-    std::ifstream modelViewProjectionShaderFile("projection.vert");
-    std::string modelViewProjectionShaderSource(
-        (std::istreambuf_iterator<char>(modelViewProjectionShaderFile)),
-        std::istreambuf_iterator<char>());
-    auto* modelViewProjectionShaderSourceC =
-        modelViewProjectionShaderSource.c_str();
+    lightingFragmentShader =
+        create_shader(load_shader_file("lighting.frag"), shader_type::fragment);
 
-    std::ifstream lightingFragmentShaderFile("lighting.frag");
-    std::string lightingFragmentShaderSource(
-        (std::istreambuf_iterator<char>(lightingFragmentShaderFile)),
-        std::istreambuf_iterator<char>());
-    auto* lightingFragmentShaderSourceC = lightingFragmentShaderSource.c_str();
+    default_vert =
+        create_shader(load_shader_file("default.frag"), shader_type::vertex);
+    default_frag =
+        create_shader(load_shader_file("default.vert"), shader_type::fragment);
 
-    modelViewProjectionShader = f->glCreateShader(GL_VERTEX_SHADER);
-    f->glShaderSource(modelViewProjectionShader,
-                      1,
-                      &modelViewProjectionShaderSourceC,
-                      nullptr);
-    f->glCompileShader(modelViewProjectionShader);
-    f->glGetShaderiv(
-        modelViewProjectionShader, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(
-            modelViewProjectionShader, 512, nullptr, error_log.data());
-        logger->error("Error compiling modelViewProjectionShader: {}",
-                      error_log);
-    }
-
-    lightingFragmentShader = f->glCreateShader(GL_FRAGMENT_SHADER);
-    f->glShaderSource(
-        lightingFragmentShader, 1, &lightingFragmentShaderSourceC, nullptr);
-    f->glCompileShader(lightingFragmentShader);
-    f->glGetShaderiv(lightingFragmentShader, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(
-            lightingFragmentShader, 512, nullptr, error_log.data());
-        logger->error("Error compiling lighting fragment shader: {}",
-                      error_log);
-    }
-
-    default_vert = f->glCreateShader(GL_VERTEX_SHADER);
-    default_frag = f->glCreateShader(GL_FRAGMENT_SHADER);
-
-    std::ifstream default_vertex_shader_file("default.vert");
-    std::string default_vertex_shader_source(
-        (std::istreambuf_iterator<char>(default_vertex_shader_file)),
-        std::istreambuf_iterator<char>());
-    std::ifstream default_fragment_shader_file("default.frag");
-    std::string default_fragment_shader_source(
-        (std::istreambuf_iterator<char>(default_fragment_shader_file)),
-        std::istreambuf_iterator<char>());
-
-    auto* default_vertex_shader_sourceC = default_vertex_shader_source.c_str();
-    auto* default_fragment_shader_sourceC =
-        default_fragment_shader_source.c_str();
-
-    f->glShaderSource(default_vert, 1, &default_vertex_shader_sourceC, nullptr);
-    f->glCompileShader(default_vert);
-    f->glGetShaderiv(default_vert, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(default_vert, 512, nullptr, error_log.data());
-        logger->error("Error compiling default vertex shader: {}", error_log);
-    }
-
-    f->glShaderSource(
-        default_frag, 1, &default_fragment_shader_sourceC, nullptr);
-    f->glCompileShader(default_frag);
-    f->glGetShaderiv(default_frag, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(default_frag, 512, nullptr, error_log.data());
-        logger->error("Error compiling default fragment shader: {}", error_log);
-    }
-
-    gizmo_program = f->glCreateProgram();
-    std::ifstream gizmo_vertex_shader_file("shaders/gizmo.vert");
-    std::ifstream gizmo_fragment_shader_file("shaders/gizmo.frag");
-    std::string gizmo_vertex_shader_source(
-        (std::istreambuf_iterator<char>(gizmo_vertex_shader_file)),
-        std::istreambuf_iterator<char>());
-    std::string gizmo_fragment_shader_source(
-        (std::istreambuf_iterator<char>(gizmo_fragment_shader_file)),
-        std::istreambuf_iterator<char>());
-    auto* gizmo_vertex_shader_sourceC = gizmo_vertex_shader_source.c_str();
-    auto* gizmo_fragment_shader_sourceC = gizmo_fragment_shader_source.c_str();
-
-    unsigned gizmo_vertex_shader = f->glCreateShader(GL_VERTEX_SHADER);
-    unsigned gizmo_fragment_shader = f->glCreateShader(GL_FRAGMENT_SHADER);
-
-    f->glShaderSource(
-        gizmo_vertex_shader, 1, &gizmo_vertex_shader_sourceC, nullptr);
-    f->glCompileShader(gizmo_vertex_shader);
-    f->glGetShaderiv(gizmo_vertex_shader, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(
-            gizmo_vertex_shader, 512, nullptr, error_log.data());
-        logger->error("Error compiling gizmo vertex shader: {}", error_log);
-    }
-
-    f->glShaderSource(
-        gizmo_fragment_shader, 1, &gizmo_fragment_shader_sourceC, nullptr);
-    f->glCompileShader(gizmo_fragment_shader);
-    f->glGetShaderiv(gizmo_fragment_shader, GL_COMPILE_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetShaderInfoLog(
-            gizmo_fragment_shader, 512, nullptr, error_log.data());
-        logger->error("Error compiling gizmo fragment shader: {}", error_log);
-    }
-
-    f->glAttachShader(gizmo_program, gizmo_vertex_shader);
-    f->glAttachShader(gizmo_program, gizmo_fragment_shader);
-    f->glLinkProgram(gizmo_program);
-    f->glGetProgramiv(gizmo_program, GL_LINK_STATUS, &error_state);
-    if (!error_state)
-    {
-        f->glGetProgramInfoLog(gizmo_program, 512, nullptr, error_log.data());
-        logger->error("Error linking gizmo shader program: {}", error_log);
-    }
-
-    f->glDeleteShader(gizmo_vertex_shader);
-    f->glDeleteShader(gizmo_fragment_shader);
+    gizmo_program = create_program({ load_shader_file("shaders/gizmo.vert") },
+                                   { load_shader_file("shaders/gizmo.frag") });
 
     std::array<std::array<float, 6>, 6> transform_gizmo_points = {
         { { 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 },
@@ -568,6 +460,71 @@ void renderer::initializeGLFunctions()
         logger->error("OpenGL functions are not available");
         throw std::runtime_error("OpenGL functions are not available");
     }
+}
+
+unsigned renderer::create_shader(std::string_view source, shader_type type)
+{
+    unsigned shader = f->glCreateShader(
+        type == shader_type::vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
+
+    auto* sourceC = source.data();
+    f->glShaderSource(shader, 1, &sourceC, nullptr);
+    f->glCompileShader(shader);
+    int success;
+    f->glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[ 512 ];
+        f->glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        throw std::runtime_error("Error compiling shader");
+    }
+
+    return shader;
+}
+
+unsigned
+renderer::create_program(std::vector<std::string_view> vertex_shaders,
+                         std::vector<std::string_view> fragment_shaders)
+{
+    unsigned program = f->glCreateProgram();
+    std::vector<unsigned> shaders;
+    for (auto const& vertex_shader : vertex_shaders)
+    {
+        shaders.push_back(create_shader(vertex_shader, shader_type::vertex));
+        f->glAttachShader(program, shaders.back());
+    }
+
+    for (auto const& fragment_shader : fragment_shaders)
+    {
+        shaders.push_back(
+            create_shader(fragment_shader, shader_type::fragment));
+        f->glAttachShader(program, shaders.back());
+    }
+
+    f->glLinkProgram(program);
+    int success;
+    f->glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[ 512 ];
+        f->glGetProgramInfoLog(program, 512, nullptr, infoLog);
+        throw std::runtime_error("Error linking program");
+    }
+
+    for (auto shader : shaders)
+    {
+        f->glDeleteShader(shader);
+    }
+
+    return program;
+}
+
+std::string renderer::load_shader_file(std::string_view path)
+{
+    std::ifstream shader_file(path.data());
+    std::string content((std::istreambuf_iterator<char>(shader_file)),
+                        std::istreambuf_iterator<char>());
+    return content;
 }
 
 } // namespace impl
