@@ -6,10 +6,8 @@ find_package(${QT_LIB_NAME} REQUIRED COMPONENTS Core Widgets)
 find_package(Boost REQUIRED)
 find_package(assimp REQUIRED)
 
-set(HEADERS main_window.hpp scene_model.hpp
-            scene_view.hpp)
-set(SOURCES main_window.cpp scene_model.cpp
-            scene_view.cpp)
+set(HEADERS main_window.hpp scene_model.hpp scene_view.hpp properties_panel.hpp)
+set(SOURCES main_window.cpp scene_model.cpp scene_view.cpp properties_panel.cpp)
 
 add_library(g_ui STATIC ${HEADERS} ${SOURCES})
 add_library(g::ui ALIAS g_ui)

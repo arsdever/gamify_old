@@ -9,9 +9,13 @@
 
 #include "ui/main_window.hpp"
 
+#include "common/logger.hpp"
+#include "project/asset.hpp"
+#include "project/asset_manager.hpp"
 #include "project/assets/material_asset.hpp"
 #include "project/assets/mesh_asset.hpp"
 #include "project/assets/texture_asset.hpp"
+#include "project/camera_component.hpp"
 #include "project/object.hpp"
 #include "project/project.hpp"
 #include "project/renderer_component.hpp"
@@ -19,10 +23,8 @@
 #include "project/scene.hpp"
 #include "project/transform_component.hpp"
 #include "qspdlog/qspdlog.hpp"
-#include "common/logger.hpp"
-#include "project/asset.hpp"
-#include "project/asset_manager.hpp"
-#include "project/camera_component.hpp"
+#include "ui/properties_panel.hpp"
+#include "ui/scene_model.hpp"
 #include "ui/scene_view.hpp"
 #include "viewport/viewport.hpp"
 #include <spdlog/sinks/sink.h>
@@ -42,6 +44,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _scene { project::scene::create("Dummy scene") }
     // , _assetManager { new ui::AssetManager }
     , _viewport { nullptr }
+    , _propertiesPanel { new PropertiesPanel }
     , _shaderEditor { new QTabWidget }
     , _vertexShaderEditor { new QPlainTextEdit }
     , _fragmentShaderEditor { new QPlainTextEdit }
@@ -81,6 +84,18 @@ MainWindow::MainWindow(QWidget* parent)
         { qobject_cast<viewport::Viewport*>(_viewport)->loadScene(_scene); });
 
     connect(qobject_cast<SceneView*>(_sceneWidget),
+            &QAbstractItemView::pressed,
+            this,
+            [ = ](QModelIndex const& index)
+            {
+        auto sceneview = qobject_cast<SceneView*>(_sceneWidget);
+        auto object = sceneview->model()
+                          ->data(index, SceneModel::Role::ObjectRole)
+                          .value<std::shared_ptr<project::object>>();
+        _propertiesPanel->showPropertiesOf(object);
+    });
+
+    connect(qobject_cast<SceneView*>(_sceneWidget),
             &SceneView::objectActivated,
             this,
             [ this ](std::shared_ptr<project::object> object)
@@ -108,6 +123,10 @@ void MainWindow::initializeDockWidgets()
 {
     initializeProjectExplorerDockWidget();
     initializeLoggerDockWidget();
+
+    auto propertiesDockWidget = new QDockWidget("Properties", this);
+    propertiesDockWidget->setWidget(_propertiesPanel);
+    addDockWidget(Qt::RightDockWidgetArea, propertiesDockWidget);
 }
 
 void MainWindow::initializeProjectExplorerDockWidget()

@@ -15,6 +15,7 @@ namespace g::ui
 {
 
 class AssetManager;
+class PropertiesPanel;
 
 class MainWindow : public QMainWindow
 {
@@ -37,6 +38,7 @@ private:
 
     QWidget* _sceneWidget;
     QWindow* _viewport;
+    PropertiesPanel* _propertiesPanel;
 
     QWidget* _shaderEditor;
     QPlainTextEdit* _vertexShaderEditor;
