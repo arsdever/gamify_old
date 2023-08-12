@@ -3,6 +3,7 @@
 #include <array>
 
 #include "common/concepts.hpp"
+#include "common/floating_point_arithmetics.hpp"
 
 namespace g::common
 {
@@ -146,6 +147,18 @@ public:
     }
 
     template <is_scalar U>
+    bool operator==(vector3<U> const& other) const
+    {
+        return x() == other.x() && y() == other.y() && z() == other.z();
+    }
+
+    template <is_scalar U>
+    bool operator!=(vector3<U> const& other) const
+    {
+        return !(*this == other);
+    }
+
+    template <is_scalar U>
     float dot(vector3<U> const& other) const
     {
         return x() * other.x() + y() * other.y() + z() * other.z();
@@ -170,6 +183,38 @@ public:
 private:
     std::array<T, 3> _data;
 };
+
+template <>
+template <>
+inline bool vector3<float>::operator==(vector3<float> const& other) const
+{
+    return fp_equals(x(), other.x()) && fp_equals(y(), other.y()) &&
+           fp_equals(z(), other.z());
+}
+
+template <>
+template <>
+inline bool vector3<float>::operator==(vector3<double> const& other) const
+{
+    return fp_equals(x(), other.x()) && fp_equals(y(), other.y()) &&
+           fp_equals(z(), other.z());
+}
+
+template <>
+template <>
+inline bool vector3<double>::operator==(vector3<float> const& other) const
+{
+    return fp_equals(x(), other.x()) && fp_equals(y(), other.y()) &&
+           fp_equals(z(), other.z());
+}
+
+template <>
+template <>
+inline bool vector3<double>::operator==(vector3<double> const& other) const
+{
+    return fp_equals(x(), other.x()) && fp_equals(y(), other.y()) &&
+           fp_equals(z(), other.z());
+}
 
 using vector3f = vector3<float>;
 using vector3d = vector3<double>;

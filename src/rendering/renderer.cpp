@@ -16,6 +16,7 @@
 #include "project/renderer_component.hpp"
 #include "project/resource_manager.hpp"
 #include "project/scene.hpp"
+#include "project/transform_component.hpp"
 #include <assimp/scene.h>
 
 namespace g::rendering
@@ -94,6 +95,8 @@ private:
     unsigned lightingFragmentShader;
     unsigned default_vert;
     unsigned default_frag;
+    unsigned gizmo_program { 0 };
+    unsigned transform_vao { 0 };
 
     std::unordered_map<common::uuid, unsigned> _textures;
 };
@@ -198,6 +201,98 @@ void renderer::initialize()
         f->glGetShaderInfoLog(default_frag, 512, nullptr, error_log.data());
         logger->error("Error compiling default fragment shader: {}", error_log);
     }
+
+    gizmo_program = f->glCreateProgram();
+    std::ifstream gizmo_vertex_shader_file("shaders/gizmo.vert");
+    std::ifstream gizmo_fragment_shader_file("shaders/gizmo.frag");
+    std::string gizmo_vertex_shader_source(
+        (std::istreambuf_iterator<char>(gizmo_vertex_shader_file)),
+        std::istreambuf_iterator<char>());
+    std::string gizmo_fragment_shader_source(
+        (std::istreambuf_iterator<char>(gizmo_fragment_shader_file)),
+        std::istreambuf_iterator<char>());
+    auto* gizmo_vertex_shader_sourceC = gizmo_vertex_shader_source.c_str();
+    auto* gizmo_fragment_shader_sourceC = gizmo_fragment_shader_source.c_str();
+
+    unsigned gizmo_vertex_shader = f->glCreateShader(GL_VERTEX_SHADER);
+    unsigned gizmo_fragment_shader = f->glCreateShader(GL_FRAGMENT_SHADER);
+
+    f->glShaderSource(
+        gizmo_vertex_shader, 1, &gizmo_vertex_shader_sourceC, nullptr);
+    f->glCompileShader(gizmo_vertex_shader);
+    f->glGetShaderiv(gizmo_vertex_shader, GL_COMPILE_STATUS, &error_state);
+    if (!error_state)
+    {
+        f->glGetShaderInfoLog(
+            gizmo_vertex_shader, 512, nullptr, error_log.data());
+        logger->error("Error compiling gizmo vertex shader: {}", error_log);
+    }
+
+    f->glShaderSource(
+        gizmo_fragment_shader, 1, &gizmo_fragment_shader_sourceC, nullptr);
+    f->glCompileShader(gizmo_fragment_shader);
+    f->glGetShaderiv(gizmo_fragment_shader, GL_COMPILE_STATUS, &error_state);
+    if (!error_state)
+    {
+        f->glGetShaderInfoLog(
+            gizmo_fragment_shader, 512, nullptr, error_log.data());
+        logger->error("Error compiling gizmo fragment shader: {}", error_log);
+    }
+
+    f->glAttachShader(gizmo_program, gizmo_vertex_shader);
+    f->glAttachShader(gizmo_program, gizmo_fragment_shader);
+    f->glLinkProgram(gizmo_program);
+    f->glGetProgramiv(gizmo_program, GL_LINK_STATUS, &error_state);
+    if (!error_state)
+    {
+        f->glGetProgramInfoLog(gizmo_program, 512, nullptr, error_log.data());
+        logger->error("Error linking gizmo shader program: {}", error_log);
+    }
+
+    f->glDeleteShader(gizmo_vertex_shader);
+    f->glDeleteShader(gizmo_fragment_shader);
+
+    std::array<std::array<float, 6>, 6> transform_gizmo_points = {
+        { { 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 },
+          { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 },
+          { 0.0, 1.0, 0.0, 0.0, 1.0, 0.0 },
+          { 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 },
+          { 0.0, 0.0, 1.0, 0.0, 0.0, 1.0 },
+          { 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 } }
+    };
+
+    std::array<unsigned, 6> transform_gizmo_indices = { 0, 1, 2, 3, 4, 5 };
+
+    f->glGenVertexArrays(1, &transform_vao);
+    f->glBindVertexArray(transform_vao);
+    unsigned transform_vbo, transform_ebo;
+    f->glGenBuffers(1, &transform_vbo);
+    f->glGenBuffers(1, &transform_ebo);
+    f->glBindBuffer(GL_ARRAY_BUFFER, transform_vbo);
+    f->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, transform_ebo);
+    f->glBufferData(GL_ARRAY_BUFFER,
+                    transform_gizmo_points.size() * sizeof(float) * 6,
+                    transform_gizmo_points.data(),
+                    GL_STATIC_DRAW);
+    f->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                    sizeof(unsigned) * 6,
+                    transform_gizmo_indices.data(),
+                    GL_STATIC_DRAW);
+    f->glVertexAttribPointer(0,
+                             3,
+                             GL_FLOAT,
+                             GL_FALSE,
+                             sizeof(float) * 6,
+                             (void*)(sizeof(float) * 0));
+    f->glVertexAttribPointer(1,
+                             3,
+                             GL_FLOAT,
+                             GL_FALSE,
+                             sizeof(float) * 6,
+                             (void*)(sizeof(float) * 3));
+    f->glEnableVertexAttribArray(0);
+    f->glEnableVertexAttribArray(1);
+    f->glBindVertexArray(0);
 }
 
 void renderer::render(std::shared_ptr<project::renderer_component> renderer)
@@ -214,6 +309,7 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
             return;
         }
 
+        f->glEnable(GL_DEPTH_TEST);
         f->glUseProgram(render_context->program);
 
         auto material = renderer->material();
@@ -268,6 +364,25 @@ void renderer::render(std::shared_ptr<project::renderer_component> renderer)
         f->glBindVertexArray(render_context->vao);
         f->glDrawElements(
             GL_TRIANGLES, render_context->index_count, GL_UNSIGNED_INT, 0);
+
+        f->glDisable(GL_DEPTH_TEST);
+        f->glUseProgram(gizmo_program);
+        f->glBindVertexArray(transform_vao);
+        f->glUniformMatrix4fv(f->glGetUniformLocation(gizmo_program, "view"),
+                              1,
+                              GL_FALSE,
+                              _view_matrix.raw_data());
+        f->glUniformMatrix4fv(
+            f->glGetUniformLocation(gizmo_program, "projection"),
+            1,
+            GL_TRUE,
+            _projection_matrix.raw_data());
+        model_matrix = renderer->transform()->matrix();
+        f->glUniformMatrix4fv(f->glGetUniformLocation(gizmo_program, "model"),
+                              1,
+                              GL_FALSE,
+                              model_matrix.raw_data());
+        f->glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, 0);
         f->glBindVertexArray(0);
         f->glUseProgram(0);
     }

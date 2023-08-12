@@ -24,6 +24,8 @@ public:
     void enable();
     void disable();
 
+    std::shared_ptr<transform_component> transform() const;
+
     template <typename T>
     std::shared_ptr<T> get_component()
     {

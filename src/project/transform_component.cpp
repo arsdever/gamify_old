@@ -32,7 +32,11 @@ common::vector3f const& transform_component::position() const
 
 void transform_component::set_position(common::vector3f const& position)
 {
-    _position = position;
+    if (_position != position)
+    {
+        _is_dirty = true;
+        _position = position;
+    }
 }
 
 common::quaternion const& transform_component::rotation() const
@@ -42,14 +46,46 @@ common::quaternion const& transform_component::rotation() const
 
 void transform_component::set_rotation(common::quaternion const& rotation)
 {
-    _rotation = rotation;
+    if (_rotation != rotation)
+    {
+        _is_dirty = true;
+        _rotation = rotation;
+    }
 }
 
 common::vector3f const& transform_component::scale() const { return _scale; }
 
 void transform_component::set_scale(common::vector3f const& scale)
 {
-    _scale = scale;
+    if (_scale != scale)
+    {
+        _is_dirty = true;
+        _scale = scale;
+    }
+}
+
+void transform_component::look_at(common::vector3f const& target)
+{
+    _rotation = common::quaternion::look_rotation(_position, target);
+}
+
+common::matrix4x4f const& transform_component::matrix() const
+{
+    if (_is_dirty)
+    {
+        update_matrix();
+        _is_dirty = false;
+    }
+    return _matrix;
+}
+
+void transform_component::update_matrix() const
+{
+    auto rotmat = _rotation.to_matrix();
+    _matrix[ 0 ] = { _scale.x() * rotmat[ 0 ], rotmat[ 3 ], rotmat[ 6 ], 0.0f };
+    _matrix[ 1 ] = { rotmat[ 1 ], _scale.y() * rotmat[ 4 ], rotmat[ 7 ], 0.0f };
+    _matrix[ 2 ] = { rotmat[ 2 ], rotmat[ 5 ], _scale.z() * rotmat[ 8 ], 0.0f };
+    _matrix[ 3 ] = { _position.x(), _position.y(), _position.z(), 1.0f };
 }
 
 } // namespace g::project
